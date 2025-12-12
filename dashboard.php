@@ -143,12 +143,15 @@ $koneksi->close();
         }
 
         #main-content {
-            transition: margin-left 0.3s ease;
+            transition: width 0.3s ease;
+            width: 100%;
         }
 
         @media (min-width: 992px) {
             #main-content {
-                margin-left: var(--sidebar-width);
+                width: calc(100% - var(--sidebar-width));
+                position: relative;
+                left: var(--sidebar-width);
             }
         }
 
