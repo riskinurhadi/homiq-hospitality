@@ -418,6 +418,16 @@ $koneksi->close();
             color: rgba(255,255,255,0.7) !important;
             border-radius: 8px;
             margin-bottom: 4px;
+            padding: 0.8rem 1rem;
+            display: flex;
+            align-items: center;
+            font-weight: 500;
+        }
+        .sidebar-modern .nav-link i {
+            font-size: 1.2rem;
+            margin-right: 0.75rem;
+            width: 24px;
+            text-align: center;
         }
         .sidebar-modern .nav-link:hover {
             background: rgba(255,255,255,0.1) !important;
@@ -431,7 +441,7 @@ $koneksi->close();
     </style>
 </head>
 <body>
-    <div class="d-flex w-100">
+    <div>
         <!-- SIDEBAR -->
         <?php include 'sidebar.php'; ?>
 
