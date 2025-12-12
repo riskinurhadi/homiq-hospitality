@@ -359,7 +359,7 @@ $koneksi->close();
         function doUpdateStatus(action) {
             if (!confirm('Anda yakin ingin ' + action + ' reservasi ini?')) return;
             const formData = new FormData();
-            formData.append('id_reservasi', <?php echo $id_reservasi; ?>);
+            formData.append('id', <?php echo $id_reservasi; ?>);
             formData.append('action', action);
             fetch('update_reservasi.php', { method: 'POST', body: formData })
                 .then(r => r.json())
@@ -373,12 +373,18 @@ $koneksi->close();
         const btnUpload = document.getElementById('btnUpload');
         const uploadForm = document.getElementById('uploadForm');
         if (btnUpload) {
-            btnUpload.onclick = async () => {
+            btnUpload.onclick = () => {
                 const fd = new FormData(uploadForm);
-                const res = await fetch('upload_identitas.php', { method: 'POST', body: fd });
-                const js = await res.json();
-                if (!js.ok) { alert(js.message || 'Gagal upload identitas'); return; }
-                doUpdateStatus('checkin');
+                fetch('upload_identitas.php', { method: 'POST', body: fd })
+                    .then(r => r.json())
+                    .then(res => {
+                        if (!res.ok) {
+                            alert(res.message || 'Gagal upload identitas');
+                            return;
+                        }
+                        doUpdateStatus('checkin');
+                    })
+                    .catch(() => alert('Terjadi kesalahan saat upload identitas.'));
             };
         }
     </script>

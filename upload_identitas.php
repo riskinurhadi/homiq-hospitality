@@ -21,6 +21,8 @@ if ($id_reservasi <= 0) {
 }
 
 // Pastikan folder upload ada
+$targetDir = __DIR__ . '/uploads/';
+if (!is_dir($targetDir)) { @mkdir($targetDir, 0775, true); }
 $targetDir = __DIR__ . '/uploads/identitas/';
 if (!is_dir($targetDir)) { @mkdir($targetDir, 0775, true); }
 
