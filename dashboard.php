@@ -109,7 +109,7 @@ $koneksi->close();
     
     <style>
         html {
-            font-size: 90%;
+            font-size: 85%;
         }
         :root {
             --primary: #4361ee;
