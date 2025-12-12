@@ -105,8 +105,7 @@ $koneksi->close();
     <title>Dashboard - CMS Guesthouse Adiputra</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" rel="stylesheet">
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
-    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
     
     <style>
         :root {
@@ -133,48 +132,24 @@ $koneksi->close();
         }
 
         body {
-            font-family: 'Plus Jakarta Sans', 'Inter', sans-serif;
+            font-family: 'Plus Jakarta Sans', sans-serif;
             background-color: var(--body-bg);
             color: var(--text-main);
-            overflow-x: hidden;
         }
 
-        /* SIDEBAR */
-        .sidebar-modern.offcanvas {
-            width: var(--sidebar-width);
-            background: var(--sidebar-bg);
-            border: none;
-        }
-
-        @media (min-width: 992px) {
-            .sidebar-modern.offcanvas {
-                position: fixed;
-                top: 0;
-                left: 0;
-                bottom: 0;
-                transform: none !important;
-                visibility: visible !important;
-                z-index: 1000;
-            }
-        }
-
-        /* MAIN CONTENT */
-        #main-content {
+        #main-container {
+            display: flex;
             min-height: 100vh;
+        }
+
+        #main-content {
             transition: margin-left 0.3s ease;
-            padding: 1.5rem;
         }
 
         @media (min-width: 992px) {
             #main-content {
                 margin-left: var(--sidebar-width);
             }
-        }
-
-        /* HEADER */
-        .top-header {
-            background: transparent;
-            padding-bottom: 1.5rem;
         }
 
         /* CARDS */
@@ -244,6 +219,8 @@ $koneksi->close();
             display: flex;
             justify-content: space-between;
             align-items: center;
+            flex-wrap: wrap;
+            gap: 1rem;
         }
 
         .calendar-scroll {
@@ -412,52 +389,22 @@ $koneksi->close();
         
         .res-status.booking { background: #e0e7ff; color: #4361ee; }
         .res-status.checked-in { background: #d1fae5; color: #059669; }
-
-        /* Sidebar Override */
-        .sidebar-modern .nav-link {
-            color: rgba(255,255,255,0.7) !important;
-            border-radius: 8px;
-            margin-bottom: 4px;
-            padding: 0.8rem 1rem;
-            display: flex;
-            align-items: center;
-            font-weight: 500;
-        }
-        .sidebar-modern .nav-link i {
-            font-size: 1.2rem;
-            margin-right: 0.75rem;
-            width: 24px;
-            text-align: center;
-        }
-        .sidebar-modern .nav-link:hover {
-            background: rgba(255,255,255,0.1) !important;
-            color: #fff !important;
-        }
-        .sidebar-modern .nav-link.active {
-            background: var(--primary) !important;
-            color: #fff !important;
-            box-shadow: 0 4px 12px rgba(67, 97, 238, 0.3);
-        }
     </style>
 </head>
 <body>
-    <div>
+    <div id="main-container">
         <!-- SIDEBAR -->
         <?php include 'sidebar.php'; ?>
 
         <!-- MAIN CONTENT -->
-        <div id="main-content">
+        <div id="main-content" class="flex-grow-1 p-3 p-md-4">
             <!-- Header -->
-            <header class="top-header d-flex justify-content-between align-items-center">
+            <header class="d-flex justify-content-between align-items-center mb-4">
                 <div>
                     <h4 class="fw-bold mb-1 text-dark">Dashboard</h4>
                     <p class="text-muted mb-0" style="font-size: 0.9rem;">Selamat datang kembali, <?php echo htmlspecialchars($nama_lengkap); ?>! 👋</p>
                 </div>
                 <div class="d-flex align-items-center gap-3">
-                    <button class="btn btn-outline-secondary d-lg-none" type="button" data-bs-toggle="offcanvas" data-bs-target="#sidebarMenu">
-                        <i class="bi bi-list"></i>
-                    </button>
-                    
                     <div class="d-none d-md-block">
                         <div class="input-group">
                             <span class="input-group-text bg-white border-end-0 rounded-start-pill ps-3"><i class="bi bi-search text-muted"></i></span>
@@ -542,7 +489,7 @@ $koneksi->close();
             <!-- Main Content Row -->
             <div class="row g-4">
                 <!-- Calendar View -->
-                <div class="col-12 col-xl-9">
+                <div class="col-12 col-lg-8 col-xl-9">
                     <div class="calendar-wrapper">
                         <div class="calendar-header">
                             <div class="d-flex align-items-center">
@@ -661,7 +608,7 @@ $koneksi->close();
                 </div>
 
                 <!-- Sidebar Widget -->
-                <div class="col-12 col-xl-3">
+                <div class="col-12 col-lg-4 col-xl-3">
                     <div class="card-modern p-4">
                         <div class="widget-header">
                             <h5 class="widget-title">Reservasi Mendatang</h5>

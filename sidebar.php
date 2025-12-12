@@ -6,8 +6,15 @@
 $current_page = basename($_SERVER['PHP_SELF']);
 $is_pengaturan_page = (strpos($current_page, 'manajemen_') === 0 || $current_page == 'pengaturan_properti.php');
 ?>
-<div class="offcanvas offcanvas-start offcanvas-lg sidebar-modern" data-bs-scroll="true" tabindex="-1" id="sidebarMenu">
+<div class="sidebar-modern shadow-sm d-none d-lg-block" id="sidebarMenu">
     <div class="offcanvas-body">
+        <div class="d-flex flex-column h-100">
+            <div class="sidebar-header d-flex align-items-center justify-content-center py-3 mb-3">
+                <a href="dashboard.php" class="text-decoration-none text-white fs-5 fw-bold">
+                    <i class="bi bi-buildings-fill me-2"></i>
+                    <span>HomiQ</span>
+                </a>
+            </div>
         <ul class="nav flex-column sidebar-nav">
             <li class="nav-item">
                 <a class="nav-link <?php echo ($current_page == 'dashboard.php') ? 'active' : ''; ?>" href="dashboard.php">
@@ -97,24 +104,72 @@ $is_pengaturan_page = (strpos($current_page, 'manajemen_') === 0 || $current_pag
                 </li>
             </ul>
         </div>
+        </div>
     </div>
 </div>
 
 <style>
-    .sidebar-modern .nav-link.active-submenu {
-        background: rgba(255, 255, 255, 0.1);
+    .sidebar-modern {
+        background-color: var(--sidebar-bg);
+        width: var(--sidebar-width);
+        position: fixed;
+        top: 0;
+        left: 0;
+        bottom: 0;
+        z-index: 1030;
+        transition: all 0.3s ease;
+    }
+
+    .sidebar-nav .nav-link {
+        color: rgba(255, 255, 255, 0.7);
+        border-radius: 8px;
+        margin-bottom: 4px;
+        padding: 0.8rem 1rem;
+        display: flex;
+        align-items: center;
+        font-weight: 500;
+        transition: background-color 0.2s, color 0.2s;
+    }
+
+    .sidebar-nav .nav-link i {
+        font-size: 1.2rem;
+        margin-right: 0.85rem;
+        width: 24px;
+        text-align: center;
+        transition: all 0.2s ease-in-out;
+    }
+
+    .sidebar-nav .nav-link:hover {
+        background-color: rgba(255, 255, 255, 0.1);
         color: #ffffff;
-        padding-left: 2.5rem;
-        font-size: 0.9rem;
     }
 
-    .sidebar-modern .nav-link.active-submenu:hover {
-        background: rgba(255, 255, 255, 0.15);
+    .sidebar-nav .nav-link.active {
+        background: var(--primary);
+        color: #ffffff;
+        box-shadow: 0 4px 12px rgba(67, 97, 238, 0.3);
     }
-
+    
     .sidebar-modern .collapse .nav-link {
-        padding-left: 2.5rem;
+        padding-left: 3rem; 
         font-size: 0.9rem;
+    }
+    .sidebar-modern .collapse .nav-link.active-submenu{
+        color: #fff;
+        font-weight: 600;
+    }
+
+    .sidebar-logout {
+        margin-top: auto;
+        padding: 1rem;
+        border-top: 1px solid rgba(255, 255, 255, 0.1);
+    }
+
+    .sidebar-logout .nav-link-logout {
+        background-color: rgba(255,255,255,0.05);
+    }
+    .sidebar-logout .nav-link-logout:hover {
+        background-color: rgba(239, 71, 111, 0.2);
+        color: #fff;
     }
 </style>
-
