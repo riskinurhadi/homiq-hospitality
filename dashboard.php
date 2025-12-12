@@ -494,7 +494,7 @@ $koneksi->close();
             <!-- Main Content Row -->
             <div class="row g-4">
                 <!-- Calendar View -->
-                <div class="col-12 col-lg-8 col-xl-9">
+                <div class="col-12 col-lg-7 col-xl-8">
                     <div class="calendar-wrapper">
                         <div class="calendar-header">
                             <div class="d-flex align-items-center">
@@ -613,7 +613,7 @@ $koneksi->close();
                 </div>
 
                 <!-- Sidebar Widget -->
-                <div class="col-12 col-lg-4 col-xl-3">
+                <div class="col-12 col-lg-5 col-xl-4">
                     <div class="card-modern p-4">
                         <div class="widget-header">
                             <h5 class="widget-title">Reservasi Mendatang</h5>
