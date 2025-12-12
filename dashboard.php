@@ -149,9 +149,8 @@ $koneksi->close();
 
         @media (min-width: 992px) {
             #main-content {
+                margin-left: var(--sidebar-width);
                 width: calc(100% - var(--sidebar-width));
-                position: relative;
-                left: var(--sidebar-width);
             }
         }
 
@@ -394,7 +393,7 @@ $koneksi->close();
         .res-status.checked-in { background: #d1fae5; color: #059669; }
     </style>
 </head>
-<body>
+<body style="overflow-x: hidden;">
     <div id="main-container">
         <!-- SIDEBAR -->
         <?php include 'sidebar.php'; ?>
