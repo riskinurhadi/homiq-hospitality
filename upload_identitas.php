@@ -82,10 +82,11 @@ if ($uploadError !== UPLOAD_ERR_OK) {
 
 
 // 4. Persiapan Direktori Upload
-$targetDir = __DIR__ . DIRECTORY_SEPARATOR . 'uploads' . DIRECTORY_SEPARATOR . 'identitas' . DIRECTORY_SEPARATOR;
+$targetDir = 'uploads/identitas/';
 
 // Coba buat direktori jika belum ada
 if (!is_dir($targetDir)) {
+    //
     if (!mkdir($targetDir, 0775, true)) {
         // Jika gagal, kirim pesan error yang jelas
         sendResponse(false, 'Gagal membuat direktori penyimpanan. Hubungi administrator.', [], 500);
@@ -109,7 +110,7 @@ if (!in_array($extension, $allowedExtensions)) {
 
 $newFileName = 'reservasi_' . $id_reservasi . '_' . time() . '_' . bin2hex(random_bytes(4)) . '.' . $extension;
 $destination = $targetDir . $newFileName;
-$relativePath = 'uploads' . DIRECTORY_SEPARATOR . 'identitas' . DIRECTORY_SEPARATOR . $newFileName;
+$relativePath = 'uploads/identitas/' . $newFileName;
 
 
 if (!move_uploaded_file($_FILES['foto']['tmp_name'], $destination)) {
