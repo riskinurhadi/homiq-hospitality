@@ -61,6 +61,7 @@ $koneksi->close();
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" rel="stylesheet">
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     
     <style>
         html {
@@ -341,7 +342,7 @@ $koneksi->close();
                         <input type="hidden" name="id_reservasi" value="<?php echo $id_reservasi; ?>">
                         <div class="mb-3">
                             <label class="form-label">Ambil/Upload Foto Identitas (KTP/SIM)</label>
-                            <input type="file" class="form-control" name="foto" accept="image/*" capture="environment" required>
+                            <input type="file" class="form-control" name="foto" id="fotoInput" accept="image/*" capture="environment">
                         </div>
                         <div class="d-grid gap-2">
                             <button type="button" class="btn btn-primary" id="btnUpload"><i class="bi bi-cloud-upload"></i> Simpan & Check-in</button>
@@ -356,35 +357,98 @@ $koneksi->close();
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
     <script>
+        const idReservasi = <?php echo $id_reservasi; ?>;
+        const bootstrapModal = new bootstrap.Modal(document.getElementById('modalIdentitas'));
+
         function doUpdateStatus(action) {
-            if (!confirm('Anda yakin ingin ' + action + ' reservasi ini?')) return;
-            const formData = new FormData();
-            formData.append('id', <?php echo $id_reservasi; ?>);
-            formData.append('action', action);
-            fetch('update_reservasi.php', { method: 'POST', body: formData })
-                .then(r => r.json())
-                .then(res => {
-                    if (res.ok) { location.reload(); }
-                    else { alert(res.message || 'Gagal memperbarui status'); }
-                })
-                .catch(() => alert('Terjadi kesalahan. Gagal memperbarui status.'));
+            const actionText = {
+                checkin: 'check-in',
+                cancel: 'membatalkan'
+            };
+
+            Swal.fire({
+                title: 'Anda Yakin?',
+                text: `Anda akan ${actionText[action] || action} reservasi ini.`,
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonColor: '#3085d6',
+                cancelButtonColor: '#d33',
+                confirmButtonText: `Ya, ${actionText[action]}!`,
+                cancelButtonText: 'Batal'
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    Swal.fire({
+                        title: 'Memproses...',
+                        text: 'Mohon tunggu sebentar.',
+                        allowOutsideClick: false,
+                        didOpen: () => {
+                            Swal.showLoading();
+                        }
+                    });
+
+                    const formData = new FormData();
+                    formData.append('id', idReservasi);
+                    formData.append('action', action);
+
+                    fetch('update_reservasi.php', { method: 'POST', body: formData })
+                        .then(response => response.json())
+                        .then(res => {
+                            if (res.ok) {
+                                Swal.fire({
+                                    title: 'Berhasil!',
+                                    text: `Reservasi telah berhasil di-${actionText[action]}.`,
+                                    icon: 'success'
+                                }).then(() => location.reload());
+                            } else {
+                                Swal.fire('Gagal', res.message || 'Gagal memperbarui status.', 'error');
+                            }
+                        })
+                        .catch(err => {
+                            Swal.fire('Error', 'Terjadi kesalahan saat menghubungi server.', 'error');
+                        });
+                }
+            });
         }
 
         const btnUpload = document.getElementById('btnUpload');
         const uploadForm = document.getElementById('uploadForm');
+        const fotoInput = document.getElementById('fotoInput');
+
         if (btnUpload) {
             btnUpload.onclick = () => {
+                // Validasi sisi klien
+                if (fotoInput.files.length === 0) {
+                     Swal.fire('Oops...', 'Anda harus memilih atau mengambil foto identitas terlebih dahulu.', 'warning');
+                     return;
+                }
+
                 const fd = new FormData(uploadForm);
+                
+                Swal.fire({
+                    title: 'Mengunggah Identitas...',
+                    text: 'Mohon tunggu, file sedang diunggah.',
+                    allowOutsideClick: false,
+                    didOpen: () => {
+                        Swal.showLoading();
+                    }
+                });
+
                 fetch('upload_identitas.php', { method: 'POST', body: fd })
-                    .then(r => r.json())
+                    .then(response => response.json())
                     .then(res => {
-                        if (!res.ok) {
-                            alert(res.message || 'Gagal upload identitas');
-                            return;
+                        Swal.close();
+                        if (res.ok) {
+                            bootstrapModal.hide();
+                            // Jika upload berhasil, lanjutkan ke proses check-in
+                            doUpdateStatus('checkin');
+                        } else {
+                            // Menampilkan pesan error spesifik dari server
+                            Swal.fire('Upload Gagal', res.message || 'Terjadi kesalahan yang tidak diketahui.', 'error');
                         }
-                        doUpdateStatus('checkin');
                     })
-                    .catch(() => alert('Terjadi kesalahan saat upload identitas.'));
+                    .catch((err) => {
+                        Swal.fire('Error', 'Gagal terhubung ke server saat mengunggah. Silakan coba lagi.', 'error');
+                    });
             };
         }
     </script>
