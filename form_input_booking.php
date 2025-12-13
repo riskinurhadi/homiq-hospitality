@@ -71,10 +71,6 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
             $result_tamu = $stmt_tamu->get_result();
             if ($result_tamu->num_rows > 0) {
                 $id_tamu = $result_tamu->fetch_assoc()['id_tamu'];
-                $stmt_update_tamu = $koneksi->prepare("UPDATE tbl_tamu SET nama_lengkap = ?, email = ? WHERE id_tamu = ?");
-                $stmt_update_tamu->bind_param("ssi", $nama_tamu, $email, $id_tamu);
-                $stmt_update_tamu->execute();
-                $stmt_update_tamu->close();
             } else {
                 $stmt_insert_tamu = $koneksi->prepare("INSERT INTO tbl_tamu (nama_lengkap, no_hp, email) VALUES (?, ?, ?)");
                 $stmt_insert_tamu->bind_param("sss", $nama_tamu, $no_hp, $email);
