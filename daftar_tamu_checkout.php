@@ -1,6 +1,6 @@
 <?php
-// daftar_reservasi.php
-// Daftar semua reservasi dengan filter dan pencarian
+// daftar_tamu_checkout.php
+// Daftar semua tamu yang sudah checkout
 
 require_once 'auth_check.php';
 
@@ -13,24 +13,14 @@ if (!in_array($role_user, ['admin', 'front_office'])) {
 require_once 'koneksi.php';
 
 // Filter dan pencarian
-$filter_status = $_GET['status'] ?? '';
 $filter_platform = $_GET['platform'] ?? '';
-$filter_bulan = $_GET['bulan'] ?? date('Y-m');
+$filter_bulan = $_GET['bulan'] ?? '';
 $search = $_GET['search'] ?? '';
 
 // Build query
-$where_conditions = [];
+$where_conditions = ["r.status_booking = 'Checked-out'"];
 $params = [];
 $types = '';
-
-if (!empty($filter_status)) {
-    $where_conditions[] = "r.status_booking = ?";
-    $params[] = $filter_status;
-    $types .= 's';
-} else {
-    // Tampilkan semua status kecuali 'Checked-out' dan 'Canceled' jika tidak ada filter
-    $where_conditions[] = "r.status_booking NOT IN ('Checked-out', 'Canceled')";
-}
 
 if (!empty($filter_platform)) {
     $where_conditions[] = "r.platform_booking = ?";
@@ -39,7 +29,7 @@ if (!empty($filter_platform)) {
 }
 
 if (!empty($filter_bulan)) {
-    $where_conditions[] = "DATE_FORMAT(r.tgl_checkin, '%Y-%m') = ?";
+    $where_conditions[] = "DATE_FORMAT(r.tgl_checkout, '%Y-%m') = ?";
     $params[] = $filter_bulan;
     $types .= 's';
 }
@@ -53,7 +43,7 @@ if (!empty($search)) {
     $types .= 'sss';
 }
 
-$where_clause = !empty($where_conditions) ? 'WHERE ' . implode(' AND ', $where_conditions) : '';
+$where_clause = !empty($where_conditions) ? 'WHERE ' . implode(' AND ', $where_conditions) : "WHERE r.status_booking = 'Checked-out'";
 
 // Query untuk ambil reservasi
 $query = "SELECT r.*, 
@@ -67,7 +57,7 @@ $query = "SELECT r.*,
           JOIN tbl_properti p ON k.id_properti = p.id_properti
           LEFT JOIN tbl_users u ON r.dibuat_oleh_user = u.id_user
           $where_clause
-          ORDER BY r.tgl_checkin DESC, r.dibuat_pada DESC
+          ORDER BY r.tgl_checkout DESC, r.dibuat_pada DESC
           LIMIT 100";
 
 $stmt = $koneksi->prepare($query);
@@ -77,11 +67,6 @@ if (!empty($params)) {
 $stmt->execute();
 $result_reservasi = $stmt->get_result();
 
-// Ambil statistik untuk filter
-$stat_total = $koneksi->query("SELECT COUNT(*) as total FROM tbl_reservasi")->fetch_assoc()['total'];
-$stat_booking = $koneksi->query("SELECT COUNT(*) as total FROM tbl_reservasi WHERE status_booking = 'Booking'")->fetch_assoc()['total'];
-$stat_checked_in = $koneksi->query("SELECT COUNT(*) as total FROM tbl_reservasi WHERE status_booking = 'Checked-in'")->fetch_assoc()['total'];
-
 $koneksi->close();
 ?>
 <!DOCTYPE html>
@@ -89,7 +74,7 @@ $koneksi->close();
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Daftar Reservasi - CMS Guesthouse Adiputra</title>
+    <title>Daftar Tamu Checkout - CMS Guesthouse Adiputra</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" rel="stylesheet">
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
@@ -185,22 +170,6 @@ $koneksi->close();
             background: #f8fafc;
             cursor: pointer;
         }
-
-        .badge-status {
-            padding: 0.5rem 0.75rem;
-            border-radius: 0.5rem;
-            font-weight: 600;
-            font-size: 0.85rem;
-        }
-
-        .badge-status.booking { background: #e0e7ff; color: var(--primary); }
-        .badge-status.checked-in { background: #d1fae5; color: var(--success); }
-        .badge-status.checked-out { background: #e2e8f0; color: var(--text-muted); }
-        .badge-status.canceled { background: #ffe4e6; color: var(--danger); }
-
-        .badge-payment.lunas { background: #d1fae5; color: var(--success); }
-        .badge-payment.dp { background: #fef3c7; color: #f59e0b; }
-        .badge-payment.belum-bayar { background: #ffe4e6; color: var(--danger); }
     </style>
 </head>
 <body style="overflow-x: hidden;">
@@ -213,30 +182,15 @@ $koneksi->close();
             <!-- Header -->
             <header class="d-flex justify-content-between align-items-center mb-4">
                 <div>
-                    <h4 class="fw-bold mb-1 text-dark">Daftar Reservasi</h4>
-                    <p class="text-muted mb-0" style="font-size: 0.9rem;">Kelola semua data reservasi</p>
-                </div>
-                <div>
-                    <a href="form_input_booking.php" class="btn btn-primary shadow-sm">
-                        <i class="bi bi-plus-lg me-1"></i>Tambah Booking
-                    </a>
+                    <h4 class="fw-bold mb-1 text-dark">Daftar Tamu Checkout</h4>
+                    <p class="text-muted mb-0" style="font-size: 0.9rem;">Riwayat tamu yang telah selesai menginap.</p>
                 </div>
             </header>
 
             <!-- Filter Card -->
             <div class="filter-card">
                 <form method="GET" action="" class="row g-3 align-items-end">
-                    <div class="col-md-3">
-                        <label class="form-label small fw-medium">Status Booking</label>
-                        <select class="form-select" name="status">
-                            <option value="">Semua Status</option>
-                            <option value="Booking" <?php echo $filter_status == 'Booking' ? 'selected' : ''; ?>>Booking</option>
-                            <option value="Checked-in" <?php echo $filter_status == 'Checked-in' ? 'selected' : ''; ?>>Checked-in</option>
-                            <option value="Checked-out" <?php echo $filter_status == 'Checked-out' ? 'selected' : ''; ?>>Checked-out</option>
-                            <option value="Canceled" <?php echo $filter_status == 'Canceled' ? 'selected' : ''; ?>>Canceled</option>
-                        </select>
-                    </div>
-                    <div class="col-md-3">
+                    <div class="col-md-4">
                         <label class="form-label small fw-medium">Platform</label>
                         <select class="form-select" name="platform">
                             <option value="">Semua Platform</option>
@@ -247,11 +201,11 @@ $koneksi->close();
                             <option value="Traveloka" <?php echo $filter_platform == 'Traveloka' ? 'selected' : ''; ?>>Traveloka</option>
                         </select>
                     </div>
-                    <div class="col-md-3">
-                        <label class="form-label small fw-medium">Bulan</label>
+                    <div class="col-md-4">
+                        <label class="form-label small fw-medium">Bulan Checkout</label>
                         <input type="month" class="form-control" name="bulan" value="<?php echo htmlspecialchars($filter_bulan); ?>">
                     </div>
-                    <div class="col-md-3">
+                    <div class="col-md-4">
                         <label class="form-label small fw-medium">Pencarian</label>
                         <div class="input-group">
                             <input type="text" class="form-control" name="search" placeholder="Nama, No HP, Kamar..." value="<?php echo htmlspecialchars($search); ?>">
@@ -266,7 +220,7 @@ $koneksi->close();
             <!-- Table Card -->
             <div class="content-card">
                 <div class="d-flex justify-content-between align-items-center mb-3">
-                    <h6 class="mb-0">Total: <span class="text-primary fw-bold"><?php echo $result_reservasi->num_rows; ?></span> reservasi ditemukan</h6>
+                    <h6 class="mb-0">Total: <span class="text-primary fw-bold"><?php echo $result_reservasi->num_rows; ?></span> tamu ditemukan</h6>
                 </div>
 
                 <?php if ($result_reservasi->num_rows > 0): ?>
@@ -280,8 +234,6 @@ $koneksi->close();
                                     <th>Check-in / out</th>
                                     <th>Durasi</th>
                                     <th>Platform</th>
-                                    <th>Status</th>
-                                    <th>Pembayaran</th>
                                     <th>Harga</th>
                                     <th>Aksi</th>
                                 </tr>
@@ -311,16 +263,6 @@ $koneksi->close();
                                             <span class="badge bg-light text-dark fw-medium"><?php echo htmlspecialchars($row['platform_booking']); ?></span>
                                         </td>
                                         <td>
-                                            <span class="badge-status <?php echo strtolower(str_replace('-', '', $row['status_booking'])); ?>">
-                                                <?php echo $row['status_booking']; ?>
-                                            </span>
-                                        </td>
-                                        <td>
-                                            <span class="badge-payment <?php echo strtolower(str_replace(' ', '-', $row['status_pembayaran'])); ?>">
-                                                <?php echo $row['status_pembayaran']; ?>
-                                            </span>
-                                        </td>
-                                        <td>
                                             <strong>Rp <?php echo number_format($row['harga_total'], 0, ',', '.'); ?></strong>
                                         </td>
                                         <td>
@@ -338,10 +280,7 @@ $koneksi->close();
                 <?php else: ?>
                     <div class="text-center py-5">
                         <i class="bi bi-inbox" style="font-size: 3rem; color: var(--text-muted); opacity: 0.3;"></i>
-                        <p class="text-muted mt-3">Tidak ada reservasi yang cocok dengan filter Anda.</p>
-                        <a href="form_input_booking.php" class="btn btn-primary mt-2">
-                            <i class="bi bi-plus-lg me-1"></i>Tambah Booking Baru
-                        </a>
+                        <p class="text-muted mt-3">Tidak ada data tamu checkout yang cocok dengan filter Anda.</p>
                     </div>
                 <?php endif; ?>
             </div>
@@ -351,4 +290,3 @@ $koneksi->close();
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
 </body>
 </html>
-

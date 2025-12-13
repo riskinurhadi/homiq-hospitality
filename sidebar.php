@@ -31,6 +31,12 @@ $is_pengaturan_page = (strpos($current_page, 'manajemen_') === 0 || $current_pag
                     </a>
                 </li>
                 <li class="nav-item">
+                    <a class="nav-link <?php echo ($current_page == 'daftar_tamu_checkout.php') ? 'active' : ''; ?>" href="daftar_tamu_checkout.php">
+                        <i class="bi bi-person-check"></i>
+                        <span>Tamu Checkout</span>
+                    </a>
+                </li>
+                <li class="nav-item">
                     <a class="nav-link" href="#">
                         <i class="bi bi-people"></i>
                         <span>Data Tamu</span>

@@ -321,6 +321,11 @@ $koneksi->close();
                                     <i class="bi bi-x-circle me-2"></i>Batalkan Reservasi
                                 </button>
                             <?php endif; ?>
+                            <?php if ($reservasi['status_booking'] == 'Checked-in'): ?>
+                                <button class="btn btn-primary" onclick="doUpdateStatus('checkout')">
+                                    <i class="bi bi-box-arrow-right me-2"></i>Check-Out
+                                </button>
+                            <?php endif; ?>
                              <a href="form_input_booking.php?edit=<?php echo $id_reservasi; ?>" class="btn btn-outline-secondary">
                                 <i class="bi bi-pencil-square me-2"></i>Edit Reservasi
                             </a>
@@ -363,7 +368,8 @@ $koneksi->close();
         function doUpdateStatus(action) {
             const actionText = {
                 checkin: 'check-in',
-                cancel: 'membatalkan'
+                cancel: 'membatalkan',
+                checkout: 'check-out'
             };
 
             Swal.fire({

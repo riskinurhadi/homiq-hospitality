@@ -16,7 +16,7 @@ if (!in_array($role_user, ['admin', 'front_office'])) {
 $id_reservasi = isset($_POST['id']) ? (int)$_POST['id'] : 0;
 $action = $_POST['action'] ?? '';
 
-if ($id_reservasi <= 0 || !in_array($action, ['checkin', 'cancel'])) {
+if ($id_reservasi <= 0 || !in_array($action, ['checkin', 'cancel', 'checkout'])) {
     http_response_code(400);
     echo json_encode(['ok' => false, 'message' => 'Invalid request']);
     exit();
@@ -38,6 +38,7 @@ $stmt->close();
 $newStatus = $current['status_booking'];
 if ($action === 'checkin') { $newStatus = 'Checked-in'; }
 if ($action === 'cancel') { $newStatus = 'Canceled'; }
+if ($action === 'checkout') { $newStatus = 'Checked-out'; }
 
 $stmtU = $koneksi->prepare("UPDATE tbl_reservasi SET status_booking = ? WHERE id_reservasi = ?");
 $stmtU->bind_param('si', $newStatus, $id_reservasi);
