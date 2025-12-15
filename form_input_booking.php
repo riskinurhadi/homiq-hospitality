@@ -404,15 +404,15 @@ $koneksi->close();
                         </div>
                     </div>
                     <div class="row">
-                        <div class="col-md-4 mb-3">
-                            <!-- <label for="status_pembayaran" class="form-label">Status Pembayaran</label>
+                        <!-- <div class="col-md-4 mb-3">
+                            <label for="status_pembayaran" class="form-label">Status Pembayaran</label>
                             <select class="form-select" id="status_pembayaran" name="status_pembayaran">
                                 <?php $status_pembayaran = $reservasi_data['status_pembayaran'] ?? 'Belum Bayar'; ?>
                                 <option value="Belum Bayar" <?php echo ($status_pembayaran == 'Belum Bayar') ? 'selected' : ''; ?>>Belum Bayar</option>
                                 <option value="DP" <?php echo ($status_pembayaran == 'DP') ? 'selected' : ''; ?>>DP</option>
                                 <option value="Lunas" <?php echo ($status_pembayaran == 'Lunas') ? 'selected' : ''; ?>>Lunas</option>
-                            </select> -->
-                        </div>
+                            </select>
+                        </div> -->
                         <div class="col-md-8 mb-3 d-none" id="dp_field">
                              <label for="jumlah_dp" class="form-label">Jumlah DP</label>
                             <div class="input-group">
