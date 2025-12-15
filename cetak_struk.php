@@ -95,6 +95,11 @@ class PDF extends FPDF
         } else {
             $checkin = new DateTime($reservasi['tgl_checkin']);
             $checkout = new DateTime($reservasi['tgl_checkout']);
+
+            // Reset time to midnight to calculate nights correctly
+            $checkin->setTime(0, 0, 0);
+            $checkout->setTime(0, 0, 0);
+
             $durasi = $checkin->diff($checkout)->days;
             $durasi_str = ' (' . $durasi . ' malam)';
         }
