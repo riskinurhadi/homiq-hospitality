@@ -77,8 +77,8 @@ $stat_tamu_hari_ini = $koneksi->query("
     SELECT COUNT(DISTINCT r.id_tamu) as total 
     FROM tbl_reservasi r
     WHERE r.status_booking = 'Checked-in'
-    AND '$today' >= r.tgl_checkin 
-    AND '$today' < r.tgl_checkout
+    AND '$today' >= DATE(r.tgl_checkin) 
+    AND '$today' < DATE(r.tgl_checkout)
 ")->fetch_assoc()['total'];
 $stat_okupansi_bulan = $koneksi->query("
     SELECT 
@@ -583,7 +583,11 @@ $koneksi->close();
                                                     // Cari reservasi yang aktif di tanggal ini
                                                     $active_booking = null;
                                                     foreach ($kamar_reservasi as $res) {
-                                                        if ($current_date >= $res['tgl_checkin'] && $current_date < $res['tgl_checkout']) {
+                                                        // Bandingkan hanya bagian tanggal (YYYY-MM-DD)
+                                                        $checkin_date_part = substr($res['tgl_checkin'], 0, 10);
+                                                        $checkout_date_part = substr($res['tgl_checkout'], 0, 10);
+                                                        
+                                                        if ($current_date >= $checkin_date_part && $current_date < $checkout_date_part) {
                                                             $active_booking = $res;
                                                             break;
                                                         }
