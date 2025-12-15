@@ -72,7 +72,14 @@ foreach ($reservasi_list as $res) {
 // Ambil statistik untuk cards
 $stat_reservasi_aktif = $koneksi->query("SELECT COUNT(*) as total FROM tbl_reservasi WHERE status_booking IN ('Booking', 'Checked-in')")->fetch_assoc()['total'];
 $stat_kamar_tersedia = $koneksi->query("SELECT COUNT(*) as total FROM tbl_kamar WHERE status = 'Tersedia'")->fetch_assoc()['total'];
-$stat_tamu_total = $koneksi->query("SELECT COUNT(*) as total FROM tbl_tamu")->fetch_assoc()['total'];
+$today = date('Y-m-d');
+$stat_tamu_hari_ini = $koneksi->query("
+    SELECT COUNT(DISTINCT r.id_tamu) as total 
+    FROM tbl_reservasi r
+    WHERE r.status_booking = 'Checked-in'
+    AND '$today' >= r.tgl_checkin 
+    AND '$today' < r.tgl_checkout
+")->fetch_assoc()['total'];
 $stat_okupansi_bulan = $koneksi->query("
     SELECT 
         COUNT(DISTINCT r.id_kamar) as kamar_terisi,
@@ -467,8 +474,8 @@ $koneksi->close();
                     <div class="card-modern">
                         <div class="stat-card-body">
                             <div>
-                                <div class="stat-value"><?php echo $stat_tamu_total; ?></div>
-                                <div class="stat-label">Total Tamu</div>
+                                <div class="stat-value"><?php echo $stat_tamu_hari_ini; ?></div>
+                                <div class="stat-label">Tamu Check-in Hari Ini</div>
                             </div>
                             <div class="stat-icon orange">
                                 <i class="bi bi-people"></i>
@@ -653,5 +660,30 @@ $koneksi->close();
     </div>
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const todayCell = document.querySelector('th.text-primary'); // More specific selector for the header
+            if (todayCell) {
+                const calendarScroll = document.querySelector('.calendar-scroll');
+                const roomCol = document.querySelector('.calendar-table th.room-col');
+                const roomColWidth = roomCol ? roomCol.offsetWidth : 0;
+                
+                // Calculate the position to scroll to
+                const cellLeft = todayCell.offsetLeft;
+                const cellWidth = todayCell.offsetWidth;
+                const containerWidth = calendarScroll.clientWidth;
+                
+                // Position the today cell in the middle of the remaining viewport
+                let scrollPosition = cellLeft - roomColWidth - (containerWidth / 2) + (cellWidth / 2);
+
+                // Ensure we don't scroll past the beginning
+                if (scrollPosition < 0) {
+                    scrollPosition = 0;
+                }
+                
+                calendarScroll.scrollLeft = scrollPosition;
+            }
+        });
+    </script>
 </body>
 </html>
