@@ -316,10 +316,16 @@ $koneksi->close();
                                     <i class="bi bi-check-circle me-2"></i>Check-in & Ambil Identitas
                                 </button>
                             <?php endif; ?>
-                            <?php if (in_array($reservasi['status_booking'], ['Booking', 'Checked-in'])): ?>
+                            <?php if ($reservasi['status_booking'] == 'Booking'): ?>
                                 <button class="btn btn-danger" onclick="doUpdateStatus('cancel')">
                                     <i class="bi bi-x-circle me-2"></i>Batalkan Reservasi
                                 </button>
+                            <?php endif; ?>
+
+                            <?php if ($reservasi['status_booking'] == 'Checked-out'): ?>
+                                <a href="cetak_struk.php?id=<?php echo $id_reservasi; ?>" class="btn btn-info" target="_blank">
+                                    <i class="bi bi-printer me-2"></i>Download Struk
+                                </a>
                             <?php endif; ?>
                             <?php if ($reservasi['status_booking'] == 'Checked-in'): ?>
                                 <button class="btn btn-primary" onclick="doUpdateStatus('checkout')">
