@@ -114,7 +114,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                         jumlah_tamu = ?, platform_booking = ?, status_pembayaran = ?, jumlah_dp = ?, catatan_operator = ?
                     WHERE id_reservasi = ?
                 ");
-                $stmt_reservasi->bind_param("iissdissssi", $id_kamar, $id_tamu, $tgl_checkin, $tgl_checkout, 
+                $stmt_reservasi->bind_param("iissdisdsdi", $id_kamar, $id_tamu, $tgl_checkin, $tgl_checkout, 
                                            $harga_total, $jumlah_tamu, $platform_booking, $status_pembayaran, 
                                            $jumlah_dp, $catatan_operator, $id_reservasi_edit);
                 $stmt_reservasi->execute();
@@ -137,7 +137,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                     ");
                     // DP hanya disimpan di record reservasi pertama untuk grup booking
                     $current_dp = ($index == 0) ? $jumlah_dp : null;
-                     $stmt_reservasi->bind_param("iissdisdssis", $id_kamar, $id_tamu, $tgl_checkin, $tgl_checkout, 
+                     $stmt_reservasi->bind_param("iissdisssdis", $id_kamar, $id_tamu, $tgl_checkin, $tgl_checkout, 
                                                $harga_per_kamar, $jumlah_tamu, $platform_booking, $status_pembayaran, 
                                                $current_dp, $catatan_operator, $user_id, $jenis_booking);
                     $stmt_reservasi->execute();
