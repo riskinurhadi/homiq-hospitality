@@ -5,3 +5,6 @@ ADD COLUMN jenis_booking VARCHAR(50) AFTER dibuat_oleh_user;
 
 ALTER TABLE tbl_reservasi
 ADD COLUMN path_identitas VARCHAR(255) DEFAULT NULL AFTER catatan_operator;
+
+ALTER TABLE tbl_reservasi
+ADD COLUMN jumlah_dp DECIMAL(10, 2) DEFAULT NULL AFTER status_pembayaran;

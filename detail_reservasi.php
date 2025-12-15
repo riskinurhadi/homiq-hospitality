@@ -305,6 +305,18 @@ $koneksi->close();
                                 </span>
                             </span>
                         </div>
+                        <?php if ($reservasi['jumlah_dp'] > 0): ?>
+                        <div class="info-item">
+                            <span class="info-label">Jumlah DP</span>
+                            <span class="info-value">Rp <?php echo number_format($reservasi['jumlah_dp'], 0, ',', '.'); ?></span>
+                        </div>
+                        <?php if ($reservasi['status_pembayaran'] == 'DP'): ?>
+                        <div class="info-item">
+                            <span class="info-label">Sisa Bayar</span>
+                            <span class="info-value fw-bold text-danger">Rp <?php echo number_format($reservasi['harga_total'] - $reservasi['jumlah_dp'], 0, ',', '.'); ?></span>
+                        </div>
+                        <?php endif; ?>
+                        <?php endif; ?>
                     </div>
 
                     <!-- Quick Actions -->
@@ -361,6 +373,13 @@ $koneksi->close();
                                  <option value="DP">DP</option>
                                  <option value="Lunas">Lunas</option>
                              </select>
+                             <div class="mt-2 d-none" id="dp_field_modal">
+                                <label for="jumlah_dp" class="form-label small">Jumlah DP</label>
+                                <div class="input-group input-group-sm">
+                                    <span class="input-group-text">Rp</span>
+                                    <input type="text" class="form-control" id="jumlah_dp" name="jumlah_dp">
+                                </div>
+                             </div>
                         </div>
                         <?php endif; ?>
 
@@ -433,10 +452,18 @@ $koneksi->close();
             });
         }
 
-        const btnUpload = document.getElementById('btnUpload');
-        const uploadForm = document.getElementById('uploadForm');
-        const fotoInput = document.getElementById('fotoInput');
         const paymentUpdateSelect = document.getElementById('status_pembayaran_update');
+        const dpFieldModal = document.getElementById('dp_field_modal');
+
+        if (paymentUpdateSelect) {
+            paymentUpdateSelect.addEventListener('change', () => {
+                if (paymentUpdateSelect.value === 'DP') {
+                    dpFieldModal.classList.remove('d-none');
+                } else {
+                    dpFieldModal.classList.add('d-none');
+                }
+            });
+        }
 
         if (btnUpload) {
             btnUpload.onclick = () => {
@@ -445,10 +472,18 @@ $koneksi->close();
                      return;
                 }
                 
-                // Validasi status pembayaran jika form-nya ada
-                if (statusPembayaranAwal === 'Belum Bayar' && (!paymentUpdateSelect || paymentUpdateSelect.value === '')) {
-                    Swal.fire('Oops...', 'Silakan update status pembayaran menjadi DP atau Lunas untuk melanjutkan check-in.', 'warning');
-                    return;
+                if (statusPembayaranAwal === 'Belum Bayar') {
+                    if (!paymentUpdateSelect || paymentUpdateSelect.value === '') {
+                        Swal.fire('Oops...', 'Silakan update status pembayaran menjadi DP atau Lunas.', 'warning');
+                        return;
+                    }
+                    if (paymentUpdateSelect.value === 'DP') {
+                        const dpAmountInput = document.querySelector('#dp_field_modal input');
+                        if (!dpAmountInput || dpAmountInput.value.trim() === '' || parseFloat(dpAmountInput.value) <= 0) {
+                            Swal.fire('Oops...', 'Silakan masukkan jumlah DP yang valid.', 'warning');
+                            return;
+                        }
+                    }
                 }
 
                 const fd = new FormData(uploadForm);

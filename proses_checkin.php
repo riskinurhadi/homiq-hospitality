@@ -76,10 +76,23 @@ try {
         if (!in_array($status_pembayaran_baru, ['DP', 'Lunas'])) {
             throw new Exception('Status pembayaran baru tidak valid.');
         }
-        $stmt_pay = $koneksi->prepare("UPDATE tbl_reservasi SET status_pembayaran = ? WHERE id_reservasi = ?");
-        $stmt_pay->bind_param("si", $status_pembayaran_baru, $id_reservasi);
+
+        $jumlah_dp = null;
+        if ($status_pembayaran_baru == 'DP') {
+            $jumlah_dp = isset($_POST['jumlah_dp']) ? (float)str_replace(['.', ','], '', $_POST['jumlah_dp']) : 0;
+            if ($jumlah_dp <= 0) {
+                throw new Exception('Jumlah DP harus lebih besar dari 0.');
+            }
+            $stmt_pay = $koneksi->prepare("UPDATE tbl_reservasi SET status_pembayaran = ?, jumlah_dp = ? WHERE id_reservasi = ?");
+            $stmt_pay->bind_param("sdi", $status_pembayaran_baru, $jumlah_dp, $id_reservasi);
+        } else { // Lunas
+            $stmt_pay = $koneksi->prepare("UPDATE tbl_reservasi SET status_pembayaran = ? WHERE id_reservasi = ?");
+            $stmt_pay->bind_param("si", $status_pembayaran_baru, $id_reservasi);
+        }
+        
         $stmt_pay->execute();
         $stmt_pay->close();
+
     } else if ($reservasi['status_pembayaran'] == 'Belum Bayar' && !$status_pembayaran_baru) {
         throw new Exception('Status pembayaran harus diubah (DP/Lunas) untuk check-in.');
     }

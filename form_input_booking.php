@@ -59,7 +59,13 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     $harga_total = (float)str_replace(['.', ','], '', $_POST['harga_total'] ?? '0');
     $platform_booking = $_POST['platform_booking'] ?? 'OTS';
     $status_pembayaran = $_POST['status_pembayaran'] ?? 'Belum Bayar';
+    $jumlah_dp = isset($_POST['jumlah_dp']) ? (float)str_replace(['.', ','], '', $_POST['jumlah_dp']) : null;
     $catatan_operator = trim($_POST['catatan_operator'] ?? '');
+    
+    // Jika status bukan DP, pastikan jumlah_dp null
+    if ($status_pembayaran !== 'DP') {
+        $jumlah_dp = null;
+    }
     
     // Sesuaikan checkin/checkout berdasarkan jenis booking
     if (strpos($jenis_booking, 'Transit') !== false) {
@@ -105,12 +111,12 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                 $stmt_reservasi = $koneksi->prepare("
                     UPDATE tbl_reservasi 
                     SET id_kamar = ?, id_tamu = ?, tgl_checkin = ?, tgl_checkout = ?, harga_total = ?, 
-                        jumlah_tamu = ?, platform_booking = ?, status_pembayaran = ?, catatan_operator = ?
+                        jumlah_tamu = ?, platform_booking = ?, status_pembayaran = ?, jumlah_dp = ?, catatan_operator = ?
                     WHERE id_reservasi = ?
                 ");
-                $stmt_reservasi->bind_param("iissdisssi", $id_kamar, $id_tamu, $tgl_checkin, $tgl_checkout, 
+                $stmt_reservasi->bind_param("iissdissssi", $id_kamar, $id_tamu, $tgl_checkin, $tgl_checkout, 
                                            $harga_total, $jumlah_tamu, $platform_booking, $status_pembayaran, 
-                                           $catatan_operator, $id_reservasi_edit);
+                                           $jumlah_dp, $catatan_operator, $id_reservasi_edit);
                 $stmt_reservasi->execute();
                 $id_reservasi_utama = $id_reservasi_edit;
                 $success_message = "Reservasi berhasil diupdate!";
@@ -122,16 +128,18 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                 
                 $id_reservasi_baru_list = [];
 
-                foreach ($id_kamar_list as $id_kamar) {
+                foreach ($id_kamar_list as $index => $id_kamar) {
                     $stmt_reservasi = $koneksi->prepare("
                         INSERT INTO tbl_reservasi 
                         (id_kamar, id_tamu, tgl_checkin, tgl_checkout, harga_total, jumlah_tamu, 
-                         platform_booking, status_booking, status_pembayaran, catatan_operator, dibuat_oleh_user, jenis_booking) 
-                        VALUES (?, ?, ?, ?, ?, ?, ?, 'Booking', ?, ?, ?, ?)
+                         platform_booking, status_booking, status_pembayaran, jumlah_dp, catatan_operator, dibuat_oleh_user, jenis_booking) 
+                        VALUES (?, ?, ?, ?, ?, ?, ?, 'Booking', ?, ?, ?, ?, ?)
                     ");
-                     $stmt_reservasi->bind_param("iissdisssis", $id_kamar, $id_tamu, $tgl_checkin, $tgl_checkout, 
+                    // DP hanya disimpan di record reservasi pertama untuk grup booking
+                    $current_dp = ($index == 0) ? $jumlah_dp : null;
+                     $stmt_reservasi->bind_param("iissdisdssis", $id_kamar, $id_tamu, $tgl_checkin, $tgl_checkout, 
                                                $harga_per_kamar, $jumlah_tamu, $platform_booking, $status_pembayaran, 
-                                               $catatan_operator, $user_id, $jenis_booking);
+                                               $current_dp, $catatan_operator, $user_id, $jenis_booking);
                     $stmt_reservasi->execute();
                     $id_reservasi_baru_list[] = $koneksi->insert_id;
                 }
@@ -395,6 +403,23 @@ $koneksi->close();
                             </div>
                         </div>
                     </div>
+                    <div class="row">
+                        <div class="col-md-4 mb-3">
+                            <label for="status_pembayaran" class="form-label">Status Pembayaran</label>
+                            <select class="form-select" id="status_pembayaran" name="status_pembayaran">
+                                <?php $status_pembayaran = $reservasi_data['status_pembayaran'] ?? 'Belum Bayar'; ?>
+                                <option value="Belum Bayar" <?php echo ($status_pembayaran == 'Belum Bayar') ? 'selected' : ''; ?>>Belum Bayar</option>
+                                <option value="DP" <?php echo ($status_pembayaran == 'DP') ? 'selected' : ''; ?>>DP</option>
+                                <option value="Lunas" <?php echo ($status_pembayaran == 'Lunas') ? 'selected' : ''; ?>>Lunas</option>
+                            </select>
+                        </div>
+                        <div class="col-md-8 mb-3 d-none" id="dp_field">
+                             <label for="jumlah_dp" class="form-label">Jumlah DP</label>
+                            <div class="input-group">
+                                <span class="input-group-text">Rp</span>
+                                <input type="text" class="form-control" id="jumlah_dp" name="jumlah_dp" value="<?php echo htmlspecialchars($reservasi_data['jumlah_dp'] ?? '0'); ?>">
+                            </div>
+                        </div>
 
                     <div class="mb-4">
                         <label for="catatan_operator" class="form-label">Catatan</label>
@@ -454,6 +479,22 @@ $koneksi->close();
                 // TODO: Need to handle multi-room selection in edit mode
                 loadKamar(<?php echo json_encode($is_edit_mode ? [$reservasi_data['id_kamar']] : []); ?>);
             }
+
+            // Listener untuk status pembayaran
+            const statusPembayaranSelect = document.getElementById('status_pembayaran');
+            const dpField = document.getElementById('dp_field');
+
+            function toggleDpField() {
+                if (statusPembayaranSelect.value === 'DP') {
+                    dpField.classList.remove('d-none');
+                } else {
+                    dpField.classList.add('d-none');
+                }
+            }
+
+            statusPembayaranSelect.addEventListener('change', toggleDpField);
+            // Panggil saat load untuk set state awal
+            toggleDpField();
         });
 
         function handleBookingTypeChange() {
