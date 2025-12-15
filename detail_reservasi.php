@@ -351,6 +351,19 @@ $koneksi->close();
                   <div class="modal-body">
                     <form id="uploadForm" enctype="multipart/form-data">
                         <input type="hidden" name="id_reservasi" value="<?php echo $id_reservasi; ?>">
+
+                        <?php if ($reservasi['status_pembayaran'] == 'Belum Bayar'): ?>
+                        <div class="mb-3 border-bottom pb-3">
+                             <label for="status_pembayaran_update" class="form-label">Update Status Pembayaran</label>
+                             <p class="small text-muted">Check-in tidak bisa dilakukan jika status belum bayar. Ubah status menjadi DP atau Lunas.</p>
+                             <select class="form-select" name="status_pembayaran" id="status_pembayaran_update" required>
+                                 <option value="">Pilih Status Baru...</option>
+                                 <option value="DP">DP</option>
+                                 <option value="Lunas">Lunas</option>
+                             </select>
+                        </div>
+                        <?php endif; ?>
+
                         <div class="mb-3">
                             <label class="form-label">Ambil/Upload Foto Identitas (KTP/SIM)</label>
                             <input type="file" class="form-control" name="foto" id="fotoInput" accept="image/*" capture="environment">
@@ -369,14 +382,17 @@ $koneksi->close();
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
     <script>
         const idReservasi = <?php echo $id_reservasi; ?>;
+        const statusPembayaranAwal = '<?php echo $reservasi['status_pembayaran']; ?>';
         const bootstrapModal = new bootstrap.Modal(document.getElementById('modalIdentitas'));
 
         function doUpdateStatus(action) {
             const actionText = {
-                checkin: 'check-in',
                 cancel: 'membatalkan',
                 checkout: 'check-out'
             };
+
+            // Logika untuk 'checkin' sudah dipindah ke btnUpload.onclick
+            if (action === 'checkin') return;
 
             Swal.fire({
                 title: 'Anda Yakin?',
@@ -393,9 +409,7 @@ $koneksi->close();
                         title: 'Memproses...',
                         text: 'Mohon tunggu sebentar.',
                         allowOutsideClick: false,
-                        didOpen: () => {
-                            Swal.showLoading();
-                        }
+                        didOpen: () => { Swal.showLoading(); }
                     });
 
                     const formData = new FormData();
@@ -406,11 +420,8 @@ $koneksi->close();
                         .then(response => response.json())
                         .then(res => {
                             if (res.ok) {
-                                Swal.fire({
-                                    title: 'Berhasil!',
-                                    text: `Reservasi telah berhasil di-${actionText[action]}.`,
-                                    icon: 'success'
-                                }).then(() => location.reload());
+                                Swal.fire('Berhasil!', `Reservasi telah berhasil di-${action}.`, 'success')
+                                     .then(() => location.reload());
                             } else {
                                 Swal.fire('Gagal', res.message || 'Gagal memperbarui status.', 'error');
                             }
@@ -425,41 +436,47 @@ $koneksi->close();
         const btnUpload = document.getElementById('btnUpload');
         const uploadForm = document.getElementById('uploadForm');
         const fotoInput = document.getElementById('fotoInput');
+        const paymentUpdateSelect = document.getElementById('status_pembayaran_update');
 
         if (btnUpload) {
             btnUpload.onclick = () => {
-                // Validasi sisi klien
                 if (fotoInput.files.length === 0) {
                      Swal.fire('Oops...', 'Anda harus memilih atau mengambil foto identitas terlebih dahulu.', 'warning');
                      return;
+                }
+                
+                // Validasi status pembayaran jika form-nya ada
+                if (statusPembayaranAwal === 'Belum Bayar' && (!paymentUpdateSelect || paymentUpdateSelect.value === '')) {
+                    Swal.fire('Oops...', 'Silakan update status pembayaran menjadi DP atau Lunas untuk melanjutkan check-in.', 'warning');
+                    return;
                 }
 
                 const fd = new FormData(uploadForm);
                 
                 Swal.fire({
-                    title: 'Mengunggah Identitas...',
-                    text: 'Mohon tunggu, file sedang diunggah.',
+                    title: 'Memproses Check-in...',
+                    text: 'Mohon tunggu, data sedang disimpan.',
                     allowOutsideClick: false,
-                    didOpen: () => {
-                        Swal.showLoading();
-                    }
+                    didOpen: () => { Swal.showLoading(); }
                 });
 
-                fetch('upload_identitas.php', { method: 'POST', body: fd })
+                fetch('proses_checkin.php', { method: 'POST', body: fd })
                     .then(response => response.json())
                     .then(res => {
                         Swal.close();
                         if (res.ok) {
                             bootstrapModal.hide();
-                            // Jika upload berhasil, lanjutkan ke proses check-in
-                            doUpdateStatus('checkin');
+                            Swal.fire({
+                                title: 'Berhasil!',
+                                text: 'Tamu berhasil check-in.',
+                                icon: 'success'
+                            }).then(() => location.reload());
                         } else {
-                            // Menampilkan pesan error spesifik dari server
-                            Swal.fire('Upload Gagal', res.message || 'Terjadi kesalahan yang tidak diketahui.', 'error');
+                            Swal.fire('Check-in Gagal', res.message || 'Terjadi kesalahan yang tidak diketahui.', 'error');
                         }
                     })
                     .catch((err) => {
-                        Swal.fire('Error', 'Gagal terhubung ke server saat mengunggah. Silakan coba lagi.', 'error');
+                        Swal.fire('Error', 'Gagal terhubung ke server. Silakan coba lagi.', 'error');
                     });
             };
         }
