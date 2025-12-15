@@ -413,7 +413,7 @@ $koneksi->close();
                                 <option value="Lunas" <?php echo ($status_pembayaran == 'Lunas') ? 'selected' : ''; ?>>Lunas</option>
                             </select>
                         </div> -->
-                        <div class="col-md-8 mb-3 d-none" id="dp_field">
+                        <div class="col-md-1 mb-3 d-none" id="dp_field">
                              <label for="jumlah_dp" class="form-label">Jumlah DP</label>
                             <div class="input-group">
                                 <span class="input-group-text">Rp</span>
