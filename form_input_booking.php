@@ -44,23 +44,40 @@ $error_message = '';
 // Proses simpan atau update
 if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     // Ambil semua data dari form
-    $id_kamar = (int)$_POST['id_kamar'];
+    $id_kamar_list = (array)($_POST['id_kamar'] ?? []);
     $nama_tamu = trim($_POST['nama_tamu'] ?? '');
     $no_hp = trim($_POST['no_hp'] ?? '');
     $email = trim($_POST['email'] ?? '');
-    $tgl_checkin = $_POST['tgl_checkin'] ?? '';
-    $tgl_checkout = $_POST['tgl_checkout'] ?? '';
-    $jumlah_tamu = (int)$_POST['jumlah_tamu'];
-    $harga_total = (float)str_replace('.', '', $_POST['harga_total']);
+    $jenis_booking = $_POST['jenis_booking'] ?? 'Harian';
+    $tgl_checkin_date = $_POST['tgl_checkin'] ?? date('Y-m-d');
+    
+    $tgl_checkout_date = $_POST['tgl_checkout'] ?? '';
+    $jam_checkin_time = $_POST['jam_checkin'] ?? '';
+    $jam_checkout_time = $_POST['jam_checkout'] ?? '';
+
+    $jumlah_tamu = (int)($_POST['jumlah_tamu'] ?? 1);
+    $harga_total = (float)str_replace(['.', ','], '', $_POST['harga_total'] ?? '0');
     $platform_booking = $_POST['platform_booking'] ?? 'OTS';
     $status_pembayaran = $_POST['status_pembayaran'] ?? 'Belum Bayar';
     $catatan_operator = trim($_POST['catatan_operator'] ?? '');
     
+    // Sesuaikan checkin/checkout berdasarkan jenis booking
+    if (strpos($jenis_booking, 'Transit') !== false) {
+        $tgl_checkin = "$tgl_checkin_date $jam_checkin_time:00";
+        $tgl_checkout = "$tgl_checkin_date $jam_checkout_time:00"; // Asumsi transit di hari yang sama
+    } else {
+        $tgl_checkin = "$tgl_checkin_date 14:00:00"; // Default checkin jam 2 siang
+        $tgl_checkout = "$tgl_checkout_date 12:00:00"; // Default checkout jam 12 siang
+    }
+
+
     // Validasi dasar
-    if (empty($nama_tamu) || empty($no_hp) || empty($tgl_checkin) || empty($tgl_checkout) || empty($id_kamar)) {
+    if (empty($nama_tamu) || empty($no_hp) || empty($tgl_checkin_date) || empty($id_kamar_list)) {
         $error_message = 'Semua field yang ditandai * tidak boleh kosong!';
+    } elseif ($jenis_booking == 'Harian' && empty($tgl_checkout_date)) {
+        $error_message = 'Tanggal checkout harus diisi untuk booking harian!';
     } elseif (new DateTime($tgl_checkout) <= new DateTime($tgl_checkin)) {
-        $error_message = 'Tanggal checkout harus setelah tanggal check-in!';
+        $error_message = 'Waktu checkout harus setelah waktu check-in!';
     } else {
         $koneksi->begin_transaction();
         try {
@@ -80,8 +97,11 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
             }
             $stmt_tamu->close();
 
+            $id_reservasi_utama = 0;
+
             if ($is_edit_mode) {
-                // 2. Update reservasi yang ada
+                 // Logika UPDATE: Asumsi 1 kamar untuk edit mode saat ini
+                $id_kamar = $id_kamar_list[0];
                 $stmt_reservasi = $koneksi->prepare("
                     UPDATE tbl_reservasi 
                     SET id_kamar = ?, id_tamu = ?, tgl_checkin = ?, tgl_checkout = ?, harga_total = ?, 
@@ -92,28 +112,35 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                                            $harga_total, $jumlah_tamu, $platform_booking, $status_pembayaran, 
                                            $catatan_operator, $id_reservasi_edit);
                 $stmt_reservasi->execute();
+                $id_reservasi_utama = $id_reservasi_edit;
                 $success_message = "Reservasi berhasil diupdate!";
-                header("refresh:2;url=detail_reservasi.php?id=" . $id_reservasi_edit);
 
             } else {
-                // 3. Insert reservasi baru
-                $stmt_reservasi = $koneksi->prepare("
-                    INSERT INTO tbl_reservasi 
-                    (id_kamar, id_tamu, tgl_checkin, tgl_checkout, harga_total, jumlah_tamu, 
-                     platform_booking, status_booking, status_pembayaran, catatan_operator, dibuat_oleh_user) 
-                    VALUES (?, ?, ?, ?, ?, ?, ?, 'Booking', ?, ?, ?)
-                ");
-                $stmt_reservasi->bind_param("iissdisssi", $id_kamar, $id_tamu, $tgl_checkin, $tgl_checkout, 
-                                           $harga_total, $jumlah_tamu, $platform_booking, $status_pembayaran, 
-                                           $catatan_operator, $user_id);
-                $stmt_reservasi->execute();
-                $id_reservasi_baru = $koneksi->insert_id;
-                $success_message = "Booking berhasil dibuat! ID Reservasi: $id_reservasi_baru";
-                header("refresh:2;url=detail_reservasi.php?id=" . $id_reservasi_baru);
+                // Logika INSERT: Handle multi-kamar
+                $jumlah_kamar = count($id_kamar_list);
+                $harga_per_kamar = $jumlah_kamar > 0 ? $harga_total / $jumlah_kamar : 0;
+                
+                $id_reservasi_baru_list = [];
+
+                foreach ($id_kamar_list as $id_kamar) {
+                    $stmt_reservasi = $koneksi->prepare("
+                        INSERT INTO tbl_reservasi 
+                        (id_kamar, id_tamu, tgl_checkin, tgl_checkout, harga_total, jumlah_tamu, 
+                         platform_booking, status_booking, status_pembayaran, catatan_operator, dibuat_oleh_user, jenis_booking) 
+                        VALUES (?, ?, ?, ?, ?, ?, ?, 'Booking', ?, ?, ?, ?)
+                    ");
+                     $stmt_reservasi->bind_param("iissdisssis", $id_kamar, $id_tamu, $tgl_checkin, $tgl_checkout, 
+                                               $harga_per_kamar, $jumlah_tamu, $platform_booking, $status_pembayaran, 
+                                               $catatan_operator, $user_id, $jenis_booking);
+                    $stmt_reservasi->execute();
+                    $id_reservasi_baru_list[] = $koneksi->insert_id;
+                }
+                $id_reservasi_utama = $id_reservasi_baru_list[0] ?? 0;
+                $success_message = "Booking berhasil dibuat! ID Reservasi: " . implode(', ', $id_reservasi_baru_list);
             }
             
-            $stmt_reservasi->close();
             $koneksi->commit();
+            header("refresh:2;url=detail_reservasi.php?id=" . $id_reservasi_utama);
 
         } catch (Exception $e) {
             $koneksi->rollback();
@@ -275,6 +302,17 @@ $koneksi->close();
                     <h5 class="mb-4">Detail Reservasi</h5>
                     <div class="row">
                         <div class="col-md-6 mb-3">
+                            <label for="jenis_booking" class="form-label">Jenis Booking <span class="text-danger">*</span></label>
+                            <select class="form-select" id="jenis_booking" name="jenis_booking" required onchange="handleBookingTypeChange()">
+                                <option value="Harian" selected>Harian</option>
+                                <option value="Guesthouse">Guesthouse</option>
+                                <option value="Transit 3 Jam">Transit 3 Jam</option>
+                                <option value="Transit 6 Jam">Transit 6 Jam</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
                             <label for="id_properti" class="form-label">Properti <span class="text-danger">*</span></label>
                             <select class="form-select" id="id_properti" name="id_properti" required onchange="loadKamar()">
                                 <option value="">Pilih Properti</option>
@@ -291,21 +329,31 @@ $koneksi->close();
                         </div>
                         <div class="col-md-6 mb-3">
                             <label for="id_kamar" class="form-label">Kamar <span class="text-danger">*</span></label>
-                            <select class="form-select" id="id_kamar" name="id_kamar" required onchange="calculatePrice()">
+                            <select class="form-select" id="id_kamar" name="id_kamar[]" required multiple size="5">
                                 <option value="">Pilih Properti dahulu</option>
                             </select>
                         </div>
                     </div>
-                    <div class="row">
+                    <div class="row" id="harian-guesthouse-fields">
                         <div class="col-md-6 mb-3">
                             <label for="tgl_checkin" class="form-label">Tgl Check-in <span class="text-danger">*</span></label>
                             <input type="date" class="form-control" id="tgl_checkin" name="tgl_checkin" 
-                                   value="<?php echo htmlspecialchars($reservasi_data['tgl_checkin'] ?? date('Y-m-d')); ?>" required onchange="calculatePrice()">
+                                   value="<?php echo htmlspecialchars($reservasi_data['tgl_checkin'] ?? date('Y-m-d')); ?>" required>
                         </div>
                         <div class="col-md-6 mb-3">
                             <label for="tgl_checkout" class="form-label">Tgl Check-out <span class="text-danger">*</span></label>
                             <input type="date" class="form-control" id="tgl_checkout" name="tgl_checkout" 
-                                   value="<?php echo htmlspecialchars($reservasi_data['tgl_checkout'] ?? ''); ?>" required onchange="calculatePrice()">
+                                   value="<?php echo htmlspecialchars($reservasi_data['tgl_checkout'] ?? ''); ?>" required>
+                        </div>
+                    </div>
+                     <div class="row d-none" id="transit-fields">
+                        <div class="col-md-6 mb-3">
+                            <label for="jam_checkin" class="form-label">Jam Check-in <span class="text-danger">*</span></label>
+                            <input type="time" class="form-control" id="jam_checkin" name="jam_checkin">
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label for="jam_checkout" class="form-label">Jam Check-out</label>
+                            <input type="time" class="form-control" id="jam_checkout" name="jam_checkout" readonly>
                         </div>
                     </div>
                      <div class="row">
@@ -341,10 +389,10 @@ $koneksi->close();
                         </div>
                          <div class="col-md-8 mb-3">
                             <label for="harga_total" class="form-label">Total Harga</label>
-                            <div class="price-display">
-                                 <h4>Rp <span id="harga_text">0</span></h4>
+                            <div class="input-group">
+                                <span class="input-group-text">Rp</span>
+                                <input type="text" class="form-control" id="harga_total" name="harga_total" value="<?php echo htmlspecialchars($reservasi_data['harga_total'] ?? '0'); ?>">
                             </div>
-                            <input type="hidden" id="harga_total" name="harga_total" value="<?php echo $reservasi_data['harga_total'] ?? 0; ?>">
                         </div>
                     </div>
 
@@ -379,15 +427,72 @@ $koneksi->close();
                 }
             });
 
+            // Listener untuk jam checkin transit
+            document.getElementById('jam_checkin').addEventListener('change', function() {
+                const checkinTime = this.value;
+                const bookingType = document.getElementById('jenis_booking').value;
+                if (!checkinTime || (bookingType !== 'Transit 3 Jam' && bookingType !== 'Transit 6 Jam')) return;
+
+                const [hours, minutes] = checkinTime.split(':').map(Number);
+                const checkinDate = new Date();
+                checkinDate.setHours(hours, minutes, 0);
+
+                const duration = (bookingType === 'Transit 3 Jam') ? 3 : 6;
+                checkinDate.setHours(checkinDate.getHours() + duration);
+
+                const checkoutHours = String(checkinDate.getHours()).padStart(2, '0');
+                const checkoutMinutes = String(checkinDate.getMinutes()).padStart(2, '0');
+                
+                document.getElementById('jam_checkout').value = `${checkoutHours}:${checkoutMinutes}`;
+            });
+
+            // Initial setup
+            handleBookingTypeChange();
+
             // Trigger loadKamar if in edit mode and properti is selected
             if (<?php echo $is_edit_mode ? 'true' : 'false'; ?> && document.getElementById('id_properti').value) {
-                loadKamar(<?php echo $reservasi_data['id_kamar'] ?? 'null'; ?>);
+                // TODO: Need to handle multi-room selection in edit mode
+                loadKamar(<?php echo json_encode($is_edit_mode ? [$reservasi_data['id_kamar']] : []); ?>);
             }
         });
 
-        function loadKamar(selectedKamarId = null) {
+        function handleBookingTypeChange() {
+            const bookingType = document.getElementById('jenis_booking').value;
+            const harianGuesthouseFields = document.getElementById('harian-guesthouse-fields');
+            const transitFields = document.getElementById('transit-fields');
+            const tglCheckoutInput = document.getElementById('tgl_checkout');
+            const jamCheckinInput = document.getElementById('jam_checkin');
+            const kamarSelect = document.getElementById('id_kamar');
+
+            if (bookingType.includes('Transit')) {
+                harianGuesthouseFields.classList.add('d-none');
+                transitFields.classList.remove('d-none');
+                tglCheckoutInput.required = false;
+                jamCheckinInput.required = true;
+                kamarSelect.multiple = false;
+                kamarSelect.size = 1;
+            } else { // Harian or Guesthouse
+                harianGuesthouseFields.classList.remove('d-none');
+                transitFields.classList.add('d-none');
+                tglCheckoutInput.required = true;
+                jamCheckinInput.required = false;
+                kamarSelect.multiple = true;
+                kamarSelect.size = 5;
+            }
+
+            if (bookingType === 'Guesthouse') {
+                kamarSelect.disabled = true;
+                loadKamar(); // Reload to select all rooms
+            } else {
+                kamarSelect.disabled = false;
+                if(kamarSelect.options.length <= 1) loadKamar(); // load if not loaded
+            }
+        }
+
+        function loadKamar(selectedKamarIds = []) {
             const idProperti = document.getElementById('id_properti').value;
             const kamarSelect = document.getElementById('id_kamar');
+            const bookingType = document.getElementById('jenis_booking').value;
             
             kamarSelect.innerHTML = '<option value="">Memuat kamar...</option>';
             
@@ -399,56 +504,27 @@ $koneksi->close();
             fetch(`get_kamar.php?properti=${idProperti}`)
                 .then(response => response.json())
                 .then(data => {
-                    kamarSelect.innerHTML = '<option value="">Pilih Kamar</option>';
+                    kamarSelect.innerHTML = ''; // Clear existing options
                     data.forEach(kamar => {
                         const option = document.createElement('option');
                         option.value = kamar.id_kamar;
                         option.textContent = `${kamar.nama_kamar} - Rp ${parseInt(kamar.harga_default).toLocaleString('id-ID')}`;
-                        option.dataset.harga = kamar.harga_default;
-                        if(selectedKamarId && kamar.id_kamar == selectedKamarId) {
+                        
+                        // Select if it's a guesthouse booking or if it's in the selectedKamarIds array
+                        if (bookingType === 'Guesthouse' || (selectedKamarIds && selectedKamarIds.includes(kamar.id_kamar))) {
                             option.selected = true;
                         }
+                        
                         kamarSelect.appendChild(option);
                     });
-                    calculatePrice();
+
+                    // Disable if Guesthouse
+                    kamarSelect.disabled = (bookingType === 'Guesthouse');
                 })
                 .catch(error => {
                     console.error('Error fetching rooms:', error);
                     kamarSelect.innerHTML = '<option value="">Gagal memuat</option>';
                 });
-        }
-
-        function calculatePrice() {
-            const kamarSelect = document.getElementById('id_kamar');
-            const checkinVal = document.getElementById('tgl_checkin').value;
-            const checkoutVal = document.getElementById('tgl_checkout').value;
-            const hargaText = document.getElementById('harga_text');
-            const hargaInput = document.getElementById('harga_total');
-            
-            const selectedOption = kamarSelect.options[kamarSelect.selectedIndex];
-            const hargaPerMalam = selectedOption ? parseFloat(selectedOption.dataset.harga) : 0;
-            
-            if (!checkinVal || !checkoutVal || !hargaPerMalam) {
-                hargaText.textContent = "0";
-                hargaInput.value = 0;
-                return;
-            }
-            
-            const checkinDate = new Date(checkinVal);
-            const checkoutDate = new Date(checkoutVal);
-            
-            if (checkoutDate <= checkinDate) {
-                hargaText.textContent = "0";
-                hargaInput.value = 0;
-                return;
-            }
-            
-            const diffTime = Math.abs(checkoutDate - checkinDate);
-            const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
-            
-            const total = hargaPerMalam * diffDays;
-            hargaText.textContent = total.toLocaleString('id-ID');
-            hargaInput.value = total;
         }
     </script>
 </body>
