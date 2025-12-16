@@ -297,7 +297,7 @@ $koneksi->close();
 
                     <h5 class="mb-4">Detail Reservasi</h5>
                     <div class="row">
-                        <div class="col-md-8 mb-3">
+                        <div class="col-md-12 mb-3">
                             <label for="jenis_booking" class="form-label">Jenis Booking <span class="text-danger">*</span></label>
                             <select class="form-select" id="jenis_booking" name="jenis_booking" required onchange="handleBookingTypeChange()">
                                 <option value="Harian" selected>Harian</option>
