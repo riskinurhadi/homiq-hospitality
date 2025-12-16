@@ -428,48 +428,41 @@ $koneksi->close();
         </div>
     </div>
 
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
     <script>
+        const isEditMode = <?php echo $is_edit_mode ? 'true' : 'false'; ?>;
+        const editingId = <?php echo $is_edit_mode ? $id_reservasi_edit : '0'; ?>;
+        const initialSelectedKamar = <?php echo json_encode($is_edit_mode ? [(int)$reservasi_data['id_kamar']] : []); ?>;
+
         document.addEventListener("DOMContentLoaded", function() {
             // Set min date untuk checkin
             const today = new Date().toISOString().split('T')[0];
-            document.getElementById('tgl_checkin').min = today;
+            const checkinInput = document.getElementById('tgl_checkin');
+            checkinInput.min = today;
 
-            document.getElementById('tgl_checkin').addEventListener('change', function() {
+            checkinInput.addEventListener('change', function() {
                 const checkinDate = this.value;
                 if (checkinDate) {
                     const nextDay = new Date(checkinDate);
                     nextDay.setDate(nextDay.getDate() + 1);
                     document.getElementById('tgl_checkout').min = nextDay.toISOString().split('T')[0];
                 }
+                loadKamar();
             });
-
-            // Listener untuk jam checkin transit
-            document.getElementById('jam_checkin').addEventListener('change', function() {
-                const checkinTime = this.value;
-                const bookingType = document.getElementById('jenis_booking').value;
-                if (!checkinTime || (bookingType !== 'Transit 3 Jam' && bookingType !== 'Transit 6 Jam')) return;
-
-                const [hours, minutes] = checkinTime.split(':').map(Number);
-                const checkinDate = new Date();
-                checkinDate.setHours(hours, minutes, 0);
-
-                const duration = (bookingType === 'Transit 3 Jam') ? 3 : 6;
-                checkinDate.setHours(checkinDate.getHours() + duration);
-
-                const checkoutHours = String(checkinDate.getHours()).padStart(2, '0');
-                const checkoutMinutes = String(checkinDate.getMinutes()).padStart(2, '0');
-                
-                document.getElementById('jam_checkout').value = `${checkoutHours}:${checkoutMinutes}`;
+            
+            // Add listeners to all fields that affect availability
+            document.getElementById('tgl_checkout').addEventListener('change', () => loadKamar());
+            document.getElementById('jam_checkin').addEventListener('change', () => {
+                updateTransitCheckoutTime();
+                loadKamar();
             });
 
             // Initial setup
             handleBookingTypeChange();
-
-            // Trigger loadKamar if in edit mode and properti is selected
-            if (<?php echo $is_edit_mode ? 'true' : 'false'; ?> && document.getElementById('id_properti').value) {
-                // TODO: Need to handle multi-room selection in edit mode
-                loadKamar(<?php echo json_encode($is_edit_mode ? [$reservasi_data['id_kamar']] : []); ?>);
+            
+            if (isEditMode && document.getElementById('id_properti').value) {
+                loadKamar(initialSelectedKamar);
+            } else if (document.getElementById('id_properti').value) {
+                loadKamar();
             }
 
             // Listener untuk status pembayaran
@@ -485,9 +478,26 @@ $koneksi->close();
             }
 
             statusPembayaranSelect.addEventListener('change', toggleDpField);
-            // Panggil saat load untuk set state awal
             toggleDpField();
         });
+
+        function updateTransitCheckoutTime() {
+             const checkinTime = document.getElementById('jam_checkin').value;
+             const bookingType = document.getElementById('jenis_booking').value;
+             if (!checkinTime || !bookingType.includes('Transit')) return;
+
+             const [hours, minutes] = checkinTime.split(':').map(Number);
+             const checkinDate = new Date();
+             checkinDate.setHours(hours, minutes, 0);
+
+             const duration = (bookingType === 'Transit 3 Jam') ? 3 : 6;
+             checkinDate.setHours(checkinDate.getHours() + duration);
+
+             const checkoutHours = String(checkinDate.getHours()).padStart(2, '0');
+             const checkoutMinutes = String(checkinDate.getMinutes()).padStart(2, '0');
+             
+             document.getElementById('jam_checkout').value = `${checkoutHours}:${checkoutMinutes}`;
+        }
 
         function handleBookingTypeChange() {
             const bookingType = document.getElementById('jenis_booking').value;
@@ -512,51 +522,80 @@ $koneksi->close();
                 kamarSelect.multiple = true;
                 kamarSelect.size = 5;
             }
-
-            if (bookingType === 'Guesthouse') {
-                kamarSelect.disabled = true;
-                loadKamar(); // Reload to select all rooms
-            } else {
-                kamarSelect.disabled = false;
-                if(kamarSelect.options.length <= 1) loadKamar(); // load if not loaded
-            }
+            
+            updateTransitCheckoutTime(); // Update time just in case
+            loadKamar(initialSelectedKamar); // Reload rooms with new booking type context
         }
 
         function loadKamar(selectedKamarIds = []) {
             const idProperti = document.getElementById('id_properti').value;
             const kamarSelect = document.getElementById('id_kamar');
-            const bookingType = document.getElementById('jenis_booking').value;
             
+            const bookingType = document.getElementById('jenis_booking').value;
+            const checkinDate = document.getElementById('tgl_checkin').value;
+            const checkoutDate = document.getElementById('tgl_checkout').value;
+            const checkinTime = document.getElementById('jam_checkin').value;
+            const checkoutTime = document.getElementById('jam_checkout').value;
+
             kamarSelect.innerHTML = '<option value="">Memuat kamar...</option>';
             
             if (!idProperti) {
                 kamarSelect.innerHTML = '<option value="">Pilih Properti</option>';
                 return;
             }
+
+            let queryString = `properti=${idProperti}&jenis_booking=${bookingType}&editing_id=${editingId}`;
             
-            fetch(`get_kamar.php?properti=${idProperti}`)
-                .then(response => response.json())
+            let canFetch = false;
+            if (bookingType.includes('Transit')) {
+                if (checkinDate && checkinTime && checkoutTime) {
+                    queryString += `&checkin=${checkinDate}&checkin_time=${checkinTime}&checkout_time=${checkoutTime}`;
+                    canFetch = true;
+                } else {
+                    kamarSelect.innerHTML = '<option value="">Pilih tanggal & jam transit</option>';
+                }
+            } else if (bookingType === 'Guesthouse') {
+                 queryString += `&checkin=${checkinDate}&checkout=${checkoutDate}`;
+                 canFetch = true; // For guesthouse, we show all rooms regardless of date completeness
+            } else { // Harian
+                if (checkinDate && checkoutDate) {
+                    queryString += `&checkin=${checkinDate}&checkout=${checkoutDate}`;
+                    canFetch = true;
+                } else {
+                    kamarSelect.innerHTML = '<option value="">Pilih tgl check-in & out</option>';
+                }
+            }
+
+            if (!canFetch) return;
+            
+            fetch(`get_kamar.php?${queryString}`)
+                .then(response => response.ok ? response.json() : Promise.reject('Gagal mengambil data'))
                 .then(data => {
-                    kamarSelect.innerHTML = ''; // Clear existing options
+                    if (data.error) throw new Error(data.error);
+                    
+                    kamarSelect.innerHTML = '';
+                    if (data.length === 0) {
+                        kamarSelect.innerHTML = '<option value="">Tidak ada kamar tersedia</option>';
+                        return;
+                    }
+
                     data.forEach(kamar => {
                         const option = document.createElement('option');
-                        option.value = kamar.id_kamar;
+                        const kamarIdInt = parseInt(kamar.id_kamar, 10);
+                        option.value = kamarIdInt;
                         option.textContent = `${kamar.nama_kamar} - Rp ${parseInt(kamar.harga_default).toLocaleString('id-ID')}`;
                         
-                        // Select if it's a guesthouse booking or if it's in the selectedKamarIds array
-                        if (bookingType === 'Guesthouse' || (selectedKamarIds && selectedKamarIds.includes(kamar.id_kamar))) {
+                        if (bookingType === 'Guesthouse' || (selectedKamarIds && selectedKamarIds.includes(kamarIdInt))) {
                             option.selected = true;
                         }
                         
                         kamarSelect.appendChild(option);
                     });
-
-                    // Disable if Guesthouse
                     kamarSelect.disabled = (bookingType === 'Guesthouse');
                 })
                 .catch(error => {
                     console.error('Error fetching rooms:', error);
-                    kamarSelect.innerHTML = '<option value="">Gagal memuat</option>';
+                    kamarSelect.innerHTML = '<option value="">Gagal memuat kamar</option>';
                 });
         }
     </script>
