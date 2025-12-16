@@ -77,8 +77,7 @@ $stat_tamu_hari_ini = $koneksi->query("
     SELECT COUNT(DISTINCT r.id_tamu) as total 
     FROM tbl_reservasi r
     WHERE r.status_booking = 'Checked-in'
-    AND '$today' >= DATE(r.tgl_checkin) 
-    AND '$today' < DATE(r.tgl_checkout)
+    AND DATE(r.tgl_checkin) = '$today'
 ")->fetch_assoc()['total'];
 $stat_okupansi_bulan = $koneksi->query("
     SELECT 
@@ -587,7 +586,7 @@ $koneksi->close();
                                                         $checkin_date_part = substr($res['tgl_checkin'], 0, 10);
                                                         $checkout_date_part = substr($res['tgl_checkout'], 0, 10);
                                                         
-                                                        if ($current_date >= $checkin_date_part && $current_date < $checkout_date_part) {
+                                                        if (($current_date >= $checkin_date_part && $current_date < $checkout_date_part) || ($checkin_date_part === $checkout_date_part && $current_date === $checkin_date_part)) {
                                                             $active_booking = $res;
                                                             break;
                                                         }
