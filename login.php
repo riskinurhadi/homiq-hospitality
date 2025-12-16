@@ -69,186 +69,184 @@ $koneksi->close();
     <title>Login - CMS Guesthouse Adiputra</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" rel="stylesheet">
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
     
     <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
-
         :root {
-            --primary-color: #3b82f6;
-            --primary-dark: #2563eb;
-            --bg-light: #f8fafc;
-            --text-dark: #1e293b;
+            --primary: #4361ee;
+            --primary-soft: #eef2ff;
+            --secondary: #3f37c9;
+            --dark: #1e293b;
+            --light: #f8f9fa;
+            --body-bg: #f1f5f9;
+            --card-bg: #ffffff;
+            --text-main: #334155;
             --text-muted: #64748b;
             --border-color: #e2e8f0;
-            --success-color: #10b981;
             --danger-color: #ef4444;
+            --success-color: #10b981;
+            --radius-lg: 16px;
+            --shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1);
         }
 
         body {
-            font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            min-height: 100vh;
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            background-color: var(--body-bg);
             display: flex;
             align-items: center;
             justify-content: center;
+            min-height: 100vh;
             padding: 1rem;
         }
 
         .login-container {
             width: 100%;
-            max-width: 420px;
+            max-width: 450px;
         }
 
         .login-card {
-            background: #ffffff;
-            border-radius: 1.5rem;
-            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            background: var(--card-bg);
+            border-radius: var(--radius-lg);
+            box-shadow: var(--shadow-lg);
             overflow: hidden;
-            animation: slideUp 0.5s ease-out;
+            border: 1px solid var(--border-color);
+            animation: fadeIn 0.6s ease-out;
         }
 
-        @keyframes slideUp {
+        @keyframes fadeIn {
             from {
                 opacity: 0;
-                transform: translateY(30px);
+                transform: translateY(20px) scale(0.98);
             }
             to {
                 opacity: 1;
-                transform: translateY(0);
+                transform: translateY(0) scale(1);
             }
         }
 
         .login-header {
-            background: linear-gradient(135deg, var(--primary-color) 0%, var(--primary-dark) 100%);
-            padding: 2.5rem 2rem;
+            padding: 2.5rem 2.5rem 2rem;
             text-align: center;
-            color: white;
+            border-bottom: 1px solid var(--border-color);
+            background-color: #fff;
         }
-
-        .login-header .logo-icon {
-            width: 64px;
-            height: 64px;
-            background: rgba(255, 255, 255, 0.2);
-            border-radius: 1rem;
+        
+        .logo-icon {
+            width: 60px;
+            height: 60px;
+            border-radius: 12px;
             display: inline-flex;
             align-items: center;
             justify-content: center;
             font-size: 2rem;
-            margin-bottom: 1rem;
-            backdrop-filter: blur(10px);
+            margin-bottom: 1.25rem;
+            background: var(--primary-soft);
+            color: var(--primary);
         }
 
         .login-header h1 {
             font-size: 1.75rem;
             font-weight: 700;
+            color: var(--dark);
             margin-bottom: 0.5rem;
         }
 
         .login-header p {
-            font-size: 0.95rem;
-            opacity: 0.9;
+            font-size: 1rem;
+            color: var(--text-muted);
         }
 
         .login-body {
-            padding: 2.5rem 2rem;
+            padding: 2.5rem;
         }
 
         .form-label {
             font-weight: 600;
-            color: var(--text-dark);
-            margin-bottom: 0.5rem;
-            font-size: 0.9rem;
+            color: var(--text-main);
+            margin-bottom: 0.75rem;
+        }
+
+        .input-group {
+            border-radius: 12px;
+            box-shadow: 0 1px 2px 0 rgb(0 0 0 / 0.05);
+            transition: box-shadow 0.2s;
+        }
+        
+        .input-group:focus-within {
+             box-shadow: 0 0 0 3px var(--primary-soft);
         }
 
         .form-control {
-            border: 2px solid var(--border-color);
-            border-radius: 0.75rem;
-            padding: 0.875rem 1rem;
-            font-size: 0.95rem;
+            border: 1px solid var(--border-color);
+            border-radius: 12px !important;
+            padding: 0.875rem 1.25rem;
+            font-size: 1rem;
+            height: 50px;
             transition: all 0.2s ease;
         }
-
+        
         .form-control:focus {
-            border-color: var(--primary-color);
-            box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+            border-color: var(--primary);
+            box-shadow: none;
         }
-
+        
         .input-group-text {
-            background: var(--bg-light);
-            border: 2px solid var(--border-color);
+            background: #fff;
+            border: 1px solid var(--border-color);
             border-right: none;
-            border-radius: 0.75rem 0 0 0.75rem;
+            border-radius: 12px 0 0 12px;
             color: var(--text-muted);
+            padding: 0 1rem;
         }
-
+        
         .form-control.with-icon {
             border-left: none;
-            border-radius: 0 0.75rem 0.75rem 0;
         }
 
         .btn-login {
-            background: linear-gradient(135deg, var(--primary-color) 0%, var(--primary-dark) 100%);
+            background-color: var(--primary);
             border: none;
-            border-radius: 0.75rem;
+            border-radius: 12px;
             padding: 0.875rem;
             font-weight: 600;
             font-size: 1rem;
             color: white;
             width: 100%;
             transition: all 0.3s ease;
-            box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);
+            box-shadow: 0 4px 12px rgba(67, 97, 238, 0.25);
         }
 
         .btn-login:hover {
+            background-color: var(--secondary);
             transform: translateY(-2px);
-            box-shadow: 0 6px 20px rgba(59, 130, 246, 0.4);
-        }
-
-        .btn-login:active {
-            transform: translateY(0);
+            box-shadow: 0 6px 20px rgba(63, 55, 201, 0.3);
         }
 
         .alert {
-            border-radius: 0.75rem;
+            border-radius: 12px;
             border: none;
-            padding: 1rem;
+            padding: 1rem 1.25rem;
             margin-bottom: 1.5rem;
+            display: flex;
+            align-items: center;
         }
 
         .alert-danger {
-            background: #fef2f2;
-            color: var(--danger-color);
+            background-color: #fee2e2;
+            color: #b91c1c;
         }
 
         .alert-success {
-            background: #f0fdf4;
-            color: var(--success-color);
+            background-color: #dcfce7;
+            color: #166534;
+        }
+        
+        .alert i {
+            margin-right: 0.75rem;
+            font-size: 1.25rem;
         }
 
-        .login-footer {
-            text-align: center;
-            margin-top: 1.5rem;
-            padding-top: 1.5rem;
-            border-top: 1px solid var(--border-color);
-        }
-
-        .login-footer a {
-            color: var(--primary-color);
-            text-decoration: none;
-            font-weight: 500;
-            font-size: 0.9rem;
-        }
-
-        .login-footer a:hover {
-            text-decoration: underline;
-        }
-
-        .password-toggle {
+        .password-toggle-btn {
             position: absolute;
             right: 1rem;
             top: 50%;
@@ -259,148 +257,97 @@ $koneksi->close();
             cursor: pointer;
             z-index: 10;
         }
-
-        .password-toggle:hover {
-            color: var(--primary-color);
-        }
-
-        .input-wrapper {
-            position: relative;
-        }
     </style>
 </head>
 <body>
     <div class="login-container">
         <div class="login-card">
-            <!-- Header -->
             <div class="login-header">
                 <div class="logo-icon">
-                    <i class="bi bi-building"></i>
+                    <i class="bi bi-building-lock"></i>
                 </div>
-                <h1>Selamat Datang</h1>
-                <p>CMS Guesthouse Adiputra</p>
+                <h1>HomiQ Hospitality</h1>
+                <p>Silakan masuk untuk melanjutkan</p>
             </div>
 
-            <!-- Body -->
             <div class="login-body">
-                <!-- Alert Messages -->
                 <?php if (!empty($error_message)): ?>
                     <div class="alert alert-danger" role="alert">
-                        <i class="bi bi-exclamation-circle me-2"></i>
-                        <?php echo htmlspecialchars($error_message); ?>
+                        <i class="bi bi-x-circle-fill"></i>
+                        <div><?php echo htmlspecialchars($error_message); ?></div>
                     </div>
                 <?php endif; ?>
 
                 <?php if (!empty($success_message)): ?>
                     <div class="alert alert-success" role="alert">
-                        <i class="bi bi-check-circle me-2"></i>
-                        <?php echo htmlspecialchars($success_message); ?>
+                        <i class="bi bi-check-circle-fill"></i>
+                        <div><?php echo htmlspecialchars($success_message); ?></div>
                     </div>
                 <?php endif; ?>
 
-                <!-- Login Form -->
                 <form method="POST" action="">
-                    <!-- Username -->
                     <div class="mb-3">
-                        <label for="username" class="form-label">
-                            <i class="bi bi-person me-1"></i> Username
-                        </label>
+                        <label for="username" class="form-label">Username</label>
                         <div class="input-group">
-                            <span class="input-group-text">
+                             <span class="input-group-text">
                                 <i class="bi bi-person"></i>
                             </span>
-                            <input 
-                                type="text" 
-                                class="form-control with-icon" 
-                                id="username" 
-                                name="username" 
-                                placeholder="Masukkan username"
-                                required 
-                                autofocus
-                                autocomplete="username"
-                            >
+                            <input type="text" class="form-control with-icon" id="username" name="username" placeholder="cth: admin" required autofocus autocomplete="username">
                         </div>
                     </div>
 
-                    <!-- Password -->
                     <div class="mb-4">
-                        <label for="password" class="form-label">
-                            <i class="bi bi-lock me-1"></i> Password
-                        </label>
-                        <div class="input-wrapper">
-                            <div class="input-group">
+                        <label for="password" class="form-label">Password</label>
+                        <div class="position-relative">
+                           <div class="input-group">
                                 <span class="input-group-text">
-                                    <i class="bi bi-lock-fill"></i>
+                                    <i class="bi bi-lock"></i>
                                 </span>
-                                <input 
-                                    type="password" 
-                                    class="form-control with-icon" 
-                                    id="password" 
-                                    name="password" 
-                                    placeholder="Masukkan password"
-                                    required
-                                    autocomplete="current-password"
-                                >
-                            </div>
-                            <button 
-                                type="button" 
-                                class="password-toggle" 
-                                onclick="togglePassword()"
-                                aria-label="Toggle password visibility"
-                            >
-                                <i class="bi bi-eye" id="password-icon"></i>
+                                <input type="password" class="form-control with-icon" id="password" name="password" placeholder="••••••••" required autocomplete="current-password">
+                           </div>
+                            <button type="button" class="password-toggle-btn" id="password-toggle" aria-label="Toggle password visibility">
+                                <i class="bi bi-eye-slash"></i>
                             </button>
                         </div>
                     </div>
 
-                    <!-- Submit Button -->
-                    <button type="submit" class="btn btn-login">
+                    <button type="submit" class="btn btn-login mt-2">
                         <i class="bi bi-box-arrow-in-right me-2"></i>
                         Masuk
                     </button>
                 </form>
-
-                <!-- Footer -->
-                <div class="login-footer">
-                    <p class="text-muted mb-2" style="font-size: 0.85rem;">
-                        Belum punya akun? 
-                        <a href="register.php">Daftar sebagai Admin</a>
-                    </p>
-                </div>
             </div>
         </div>
+        <footer class="text-center mt-4">
+            <p class="text-muted" style="font-size: 0.875rem;">&copy; <?php echo date('Y'); ?> HomiQ Hospitality. All Rights Reserved.</p>
+        </footer>
     </div>
 
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
     <script>
-        // Toggle password visibility
-        function togglePassword() {
+        document.addEventListener('DOMContentLoaded', function() {
+            // Toggle password visibility
             const passwordInput = document.getElementById('password');
-            const passwordIcon = document.getElementById('password-icon');
-            
-            if (passwordInput.type === 'password') {
-                passwordInput.type = 'text';
-                passwordIcon.classList.remove('bi-eye');
-                passwordIcon.classList.add('bi-eye-slash');
-            } else {
-                passwordInput.type = 'password';
-                passwordIcon.classList.remove('bi-eye-slash');
-                passwordIcon.classList.add('bi-eye');
+            const passwordToggle = document.getElementById('password-toggle');
+            if (passwordToggle) {
+                passwordToggle.addEventListener('click', function() {
+                    const icon = this.querySelector('i');
+                    const isPassword = passwordInput.type === 'password';
+                    passwordInput.type = isPassword ? 'text' : 'password';
+                    icon.classList.toggle('bi-eye');
+                    icon.classList.toggle('bi-eye-slash');
+                });
             }
-        }
 
-        // Auto hide alerts after 5 seconds
-        setTimeout(function() {
-            const alerts = document.querySelectorAll('.alert');
-            alerts.forEach(function(alert) {
-                alert.style.transition = 'opacity 0.5s';
-                alert.style.opacity = '0';
-                setTimeout(function() {
-                    alert.remove();
-                }, 500);
-            });
-        }, 5000);
+            // Auto hide alerts after 5 seconds
+            setTimeout(function() {
+                const alerts = document.querySelectorAll('.alert');
+                alerts.forEach(function(alert) {
+                    new bootstrap.Alert(alert).close();
+                });
+            }, 5000);
+        });
     </script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
 </body>
 </html>
 
