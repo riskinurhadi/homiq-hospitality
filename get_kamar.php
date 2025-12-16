@@ -75,14 +75,7 @@ try {
 
     // Logika untuk booking Harian dan Transit
     if ((strpos($jenis_booking, 'Transit') === false && (!$checkin_date || !$checkout_date)) || (strpos($jenis_booking, 'Transit') !== false && !$checkin_date)) {
-        // Jika tanggal tidak disediakan untuk Harian/Transit, kembalikan semua kamar untuk properti tersebut.
-        $stmt = $koneksi->prepare("SELECT id_kamar, nama_kamar, harga_default FROM tbl_kamar WHERE id_properti = ? ORDER BY nama_kamar");
-        $stmt->bind_param("i", $id_properti);
-        $stmt->execute();
-        $kamar_list = $stmt->get_result()->fetch_all(MYSQLI_ASSOC);
-        echo json_encode($kamar_list);
-        $stmt->close();
-        $koneksi->close();
+        echo json_encode([]);
         exit();
     }
 
