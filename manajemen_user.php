@@ -22,11 +22,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['tambah_user'])) {
     $password = $_POST['password'];
     $role = $_POST['role'];
 
-    // Validasi dasar
     if (empty($nama_lengkap) || empty($username) || empty($password) || empty($role)) {
         $error_message = "Semua kolom harus diisi.";
     } else {
-        // Cek apakah username sudah ada
         $stmt_check = $koneksi->prepare("SELECT id_user FROM tbl_users WHERE username = ?");
         $stmt_check->bind_param("s", $username);
         $stmt_check->execute();
@@ -35,7 +33,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['tambah_user'])) {
         if ($result_check->num_rows > 0) {
             $error_message = "Username sudah digunakan. Silakan pilih username lain.";
         } else {
-            // Hash password sebelum disimpan
             $hashed_password = password_hash($password, PASSWORD_DEFAULT);
 
             $stmt = $koneksi->prepare("INSERT INTO tbl_users (nama_lengkap, username, password, role) VALUES (?, ?, ?, ?)");
@@ -52,7 +49,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['tambah_user'])) {
     }
 }
 
-// Ambil semua user untuk ditampilkan
 $result_users = $koneksi->query("SELECT id_user, username, nama_lengkap, role, dibuat_pada FROM tbl_users ORDER BY dibuat_pada DESC");
 
 $koneksi->close();
@@ -87,36 +83,109 @@ $koneksi->close();
             --text-muted: #64748b;
             --border-color: #e2e8f0;
             --sidebar-width: 260px;
+            --sidebar-width-minimized: 90px;
             --sidebar-bg: #0f172a;
             --radius-md: 12px;
             --radius-lg: 16px;
-            --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.05);
-            --shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
         }
 
         body {
             font-family: 'Plus Jakarta Sans', sans-serif;
             background-color: var(--body-bg);
             color: var(--text-main);
-        }
-        
-        #main-container {
             display: flex;
             min-height: 100vh;
         }
 
         #main-content {
-            transition: width 0.3s ease;
+            transition: margin-left 0.3s ease, width 0.3s ease;
             width: 100%;
+            margin-left: var(--sidebar-width);
         }
         
-        @media (min-width: 992px) {
-            #main-content {
-                margin-left: var(--sidebar-width);
-                width: calc(100% - var(--sidebar-width));
-            }
+        body.sidebar-minimized #sidebarMenu {
+            width: var(--sidebar-width-minimized);
         }
 
+        body.sidebar-minimized #main-content {
+            margin-left: var(--sidebar-width-minimized);
+        }
+
+        body.sidebar-minimized #sidebarMenu .menu-text,
+        body.sidebar-minimized #sidebarMenu .nav-link .bi-chevron-down {
+            opacity: 0;
+            width: 0;
+            visibility: hidden;
+        }
+
+        body.sidebar-minimized #sidebarMenu .sidebar-header {
+            justify-content: center !important;
+        }
+        
+        body.sidebar-minimized #sidebarMenu .sidebar-header .bi {
+             margin-right: 0 !important;
+        }
+        
+        body.sidebar-minimized #sidebarMenu .nav-link {
+            justify-content: center;
+        }
+        
+        body.sidebar-minimized #sidebarMenu .nav-link i {
+            margin-right: 0;
+        }
+        
+        body.sidebar-minimized #sidebarMenu .collapse {
+            display: none !important;
+        }
+        
+        body.sidebar-minimized #sidebarMenu .sidebar-footer {
+            flex-direction: column;
+            gap: 0.5rem;
+        }
+
+        body.sidebar-minimized #sidebar-toggle i {
+            transform: rotate(180deg);
+        }
+
+        .mobile-toggle-btn {
+            display: none;
+            font-size: 1.5rem;
+            color: var(--text-main);
+            background: none;
+            border: none;
+        }
+        
+        @media (max-width: 991.98px) {
+            #main-content {
+                margin-left: 0;
+            }
+
+            #sidebarMenu {
+                transform: translateX(-100%);
+                transition: transform 0.3s ease-in-out;
+                z-index: 1045;
+            }
+
+            body.sidebar-mobile-show #sidebarMenu {
+                transform: translateX(0);
+            }
+            
+            body.sidebar-mobile-show::before {
+                content: '';
+                position: fixed;
+                top: 0;
+                left: 0;
+                width: 100%;
+                height: 100%;
+                background: rgba(0,0,0,0.5);
+                z-index: 1040;
+            }
+
+            .mobile-toggle-btn {
+                display: block;
+            }
+        }
+        
         .card-modern {
             background: var(--card-bg);
             border: none;
@@ -158,13 +227,8 @@ $koneksi->close();
             border-color: var(--border-color);
         }
         .form-control:focus, .form-select:focus {
-            box-shadow: 0 0 0 0.25rem rgba(var(--primary-rgb), 0.25);
+            box-shadow: 0 0 0 0.25rem var(--primary-soft);
             border-color: var(--primary);
-        }
-        
-        .btn-primary {
-             background-color: var(--primary);
-             border-color: var(--primary);
         }
         
         .swal2-popup {
@@ -174,82 +238,88 @@ $koneksi->close();
     </style>
 </head>
 <body style="overflow-x: hidden;">
-    <div id="main-container">
-        <?php include 'sidebar.php'; ?>
-        <div id="main-content" class="flex-grow-1 p-3 p-md-4">
-             <header class="d-flex justify-content-between align-items-center mb-4">
+    
+    <?php include 'sidebar.php'; ?>
+
+    <main id="main-content" class="flex-grow-1 p-3 p-md-4">
+         <header class="d-flex justify-content-between align-items-center mb-4">
+            <div class="d-flex align-items-center">
+                <button class="mobile-toggle-btn me-3" id="mobile-sidebar-toggle">
+                    <i class="bi bi-list"></i>
+                </button>
                 <div>
                     <h4 class="fw-bold mb-1 text-dark">Manajemen User</h4>
                     <p class="text-muted mb-0" style="font-size: 0.9rem;">Kelola akun dan peran pengguna sistem.</p>
                 </div>
-                <div>
-                    <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#tambahUserModal">
-                        <i class="bi bi-person-plus-fill me-2"></i>Tambah User
-                    </button>
-                </div>
-            </header>
+            </div>
+            <div>
+                <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#tambahUserModal">
+                    <i class="bi bi-person-plus-fill me-2"></i>Tambah User
+                </button>
+            </div>
+        </header>
 
-            <div class="card-modern">
-                <div class="table-responsive">
-                    <table class="table table-hover mb-0">
-                        <thead>
-                            <tr>
-                                <th class="ps-4">ID</th>
-                                <th>Nama Lengkap</th>
-                                <th>Username</th>
-                                <th>Role</th>
-                                <th>Tanggal Dibuat</th>
-                                <th class="pe-4">Aksi</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            <?php if ($result_users->num_rows > 0): ?>
-                                <?php while ($u = $result_users->fetch_assoc()): ?>
-                                    <tr>
-                                        <td class="ps-4 text-muted">#<?php echo $u['id_user']; ?></td>
-                                        <td>
-                                            <div class="d-flex align-items-center">
-                                                <div class="me-3">
-                                                     <img src="https://ui-avatars.com/api/?name=<?php echo urlencode($u['nama_lengkap']); ?>&background=random&color=fff&size=128&bold=true" 
-                                                         alt="User" style="width: 40px; height: 40px; border-radius: 50%;">
-                                                </div>
-                                                <div>
-                                                    <div class="fw-bold text-dark"><?php echo htmlspecialchars($u['nama_lengkap']); ?></div>
-                                                    <small class="text-muted"><?php echo htmlspecialchars($u['username']); ?></small>
-                                                </div>
-                                            </div>
-                                        </td>
-                                        <td><?php echo htmlspecialchars($u['username']); ?></td>
-                                        <td>
-                                            <?php 
-                                                $clr = 'secondary';
-                                                if ($u['role'] == 'admin') $clr = 'danger';
-                                                if ($u['role'] == 'front_office') $clr = 'primary';
-                                                if ($u['role'] == 'housekeeping') $clr = 'success';
-                                            ?>
-                                            <span class="badge bg-<?php echo $clr; ?>-soft text-<?php echo $clr; ?> border border-<?php echo $clr; ?>-light badge-role"><?php echo ucfirst(str_replace('_',' ', $u['role'])); ?></span>
-                                        </td>
-                                        <td class="text-muted"><?php echo date('d M Y, H:i', strtotime($u['dibuat_pada'])); ?></td>
-                                        <td class="pe-4">
-                                            <button class="btn btn-sm btn-outline-secondary" disabled><i class="bi bi-pencil-square"></i></button>
-                                            <button class="btn btn-sm btn-outline-danger" disabled><i class="bi bi-trash"></i></button>
-                                        </td>
-                                    </tr>
-                                <?php endwhile; ?>
-                            <?php else: ?>
+        <div class="card-modern">
+            <div class="table-responsive">
+                <table class="table table-hover mb-0">
+                    <thead>
+                        <tr>
+                            <th class="ps-4">ID</th>
+                            <th>Nama Lengkap</th>
+                            <th>Username</th>
+                            <th>Role</th>
+                            <th>Tanggal Dibuat</th>
+                            <th class="pe-4">Aksi</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <?php if ($result_users->num_rows > 0): ?>
+                            <?php while ($u = $result_users->fetch_assoc()): ?>
                                 <tr>
-                                    <td colspan="6" class="text-center py-5">
-                                        <i class="bi bi-inbox fs-1 text-muted opacity-25"></i>
-                                        <p class="mt-3 text-muted">Belum ada user terdaftar.</p>
+                                    <td class="ps-4 text-muted">#<?php echo $u['id_user']; ?></td>
+                                    <td>
+                                        <div class="d-flex align-items-center">
+                                            <div class="me-3">
+                                                 <img src="https://ui-avatars.com/api/?name=<?php echo urlencode($u['nama_lengkap']); ?>&background=random&color=fff&size=128&bold=true" 
+                                                     alt="User" style="width: 40px; height: 40px; border-radius: 50%;">
+                                            </div>
+                                            <div>
+                                                <div class="fw-bold text-dark"><?php echo htmlspecialchars($u['nama_lengkap']); ?></div>
+                                                <small class="text-muted"><?php echo htmlspecialchars($u['username']); ?></small>
+                                            </div>
+                                        </div>
+                                    </td>
+                                    <td><?php echo htmlspecialchars($u['username']); ?></td>
+                                    <td>
+                                        <?php 
+                                            $clr = 'secondary';
+                                            $bg_clr = 'light';
+                                            if ($u['role'] == 'admin') {$clr = 'danger'; $bg_clr = 'danger-soft';}
+                                            if ($u['role'] == 'front_office') {$clr = 'primary'; $bg_clr = 'primary-soft';}
+                                            if ($u['role'] == 'housekeeping') {$clr = 'success'; $bg_clr = 'success-soft';}
+                                        ?>
+                                        <span class="badge bg-<?php echo $bg_clr; ?> text-<?php echo $clr; ?> border border-<?php echo $clr; ?>-light badge-role"><?php echo ucfirst(str_replace('_',' ', $u['role'])); ?></span>
+                                    </td>
+                                    <td class="text-muted"><?php echo date('d M Y, H:i', strtotime($u['dibuat_pada'])); ?></td>
+                                    <td class="pe-4">
+                                        <button class="btn btn-sm btn-outline-secondary" disabled><i class="bi bi-pencil-square"></i></button>
+                                        <button class="btn btn-sm btn-outline-danger" disabled><i class="bi bi-trash"></i></button>
                                     </td>
                                 </tr>
-                            <?php endif; ?>
-                        </tbody>
-                    </table>
-                </div>
+                            <?php endwhile; ?>
+                        <?php else: ?>
+                            <tr>
+                                <td colspan="6" class="text-center py-5">
+                                    <i class="bi bi-inbox fs-1 text-muted opacity-25"></i>
+                                    <p class="mt-3 text-muted">Belum ada user terdaftar.</p>
+                                </td>
+                            </tr>
+                        <?php endif; ?>
+                    </tbody>
+                </table>
             </div>
         </div>
-    </div>
+    </main>
 
     <!-- Modal Tambah User -->
     <div class="modal fade" id="tambahUserModal" tabindex="-1" aria-labelledby="tambahUserModalLabel" aria-hidden="true">
@@ -295,9 +365,47 @@ $koneksi->close();
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
-
     <script>
     document.addEventListener('DOMContentLoaded', function() {
+        // --- Sidebar Toggle Logic ---
+        const sidebarToggleBtn = document.getElementById('sidebar-toggle');
+        const mobileSidebarToggleBtn = document.getElementById('mobile-sidebar-toggle');
+        const body = document.body;
+
+        const toggleSidebar = () => {
+            body.classList.toggle('sidebar-minimized');
+            const isMinimized = body.classList.contains('sidebar-minimized');
+            localStorage.setItem('sidebarMinimized', isMinimized ? 'true' : 'false');
+        };
+
+        const toggleMobileSidebar = () => {
+            body.classList.toggle('sidebar-mobile-show');
+        };
+        
+        if (localStorage.getItem('sidebarMinimized') === 'true') {
+            body.classList.add('sidebar-minimized');
+        }
+
+        if (sidebarToggleBtn) {
+            sidebarToggleBtn.addEventListener('click', (e) => {
+                e.preventDefault();
+                toggleSidebar();
+            });
+        }
+        if (mobileSidebarToggleBtn) {
+            mobileSidebarToggleBtn.addEventListener('click', (e) => {
+                e.preventDefault();
+                toggleMobileSidebar();
+            });
+        }
+        
+        document.addEventListener('click', function(e) {
+            if (body.classList.contains('sidebar-mobile-show') && e.target.tagName.toLowerCase() !== 'i' && !e.target.closest('#sidebarMenu') && !e.target.closest('#mobile-sidebar-toggle')) {
+                body.classList.remove('sidebar-mobile-show');
+            }
+        });
+
+        // --- Page Specific Logic ---
         <?php if (!empty($success_message)): ?>
             Swal.fire({
                 icon: 'success',
@@ -306,7 +414,6 @@ $koneksi->close();
                 timer: 2000,
                 showConfirmButton: false
             }).then(() => {
-                // Refresh halaman untuk menampilkan data baru
                 window.location.href = 'manajemen_user.php';
             });
         <?php endif; ?>

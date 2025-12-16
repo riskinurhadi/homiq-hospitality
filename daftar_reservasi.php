@@ -77,11 +77,6 @@ if (!empty($params)) {
 $stmt->execute();
 $result_reservasi = $stmt->get_result();
 
-// Ambil statistik untuk filter
-$stat_total = $koneksi->query("SELECT COUNT(*) as total FROM tbl_reservasi")->fetch_assoc()['total'];
-$stat_booking = $koneksi->query("SELECT COUNT(*) as total FROM tbl_reservasi WHERE status_booking = 'Booking'")->fetch_assoc()['total'];
-$stat_checked_in = $koneksi->query("SELECT COUNT(*) as total FROM tbl_reservasi WHERE status_booking = 'Checked-in'")->fetch_assoc()['total'];
-
 $koneksi->close();
 ?>
 <!DOCTYPE html>
@@ -113,6 +108,7 @@ $koneksi->close();
             --text-muted: #64748b;
             --border-color: #e2e8f0;
             --sidebar-width: 260px;
+            --sidebar-width-minimized: 90px;
             --sidebar-bg: #0f172a;
             --radius-md: 12px;
             --radius-lg: 16px;
@@ -125,25 +121,99 @@ $koneksi->close();
             font-family: 'Plus Jakarta Sans', sans-serif;
             background-color: var(--body-bg);
             color: var(--text-main);
-        }
-
-        #main-container {
             display: flex;
             min-height: 100vh;
         }
 
         #main-content {
-            transition: width 0.3s ease;
+            transition: margin-left 0.3s ease, width 0.3s ease;
             width: 100%;
+            margin-left: var(--sidebar-width);
+        }
+        
+        body.sidebar-minimized #sidebarMenu {
+            width: var(--sidebar-width-minimized);
         }
 
-        @media (min-width: 992px) {
+        body.sidebar-minimized #main-content {
+            margin-left: var(--sidebar-width-minimized);
+        }
+
+        body.sidebar-minimized #sidebarMenu .menu-text,
+        body.sidebar-minimized #sidebarMenu .nav-link .bi-chevron-down {
+            opacity: 0;
+            width: 0;
+            visibility: hidden;
+        }
+
+        body.sidebar-minimized #sidebarMenu .sidebar-header {
+            justify-content: center !important;
+        }
+        
+        body.sidebar-minimized #sidebarMenu .sidebar-header .bi {
+             margin-right: 0 !important;
+        }
+        
+        body.sidebar-minimized #sidebarMenu .nav-link {
+            justify-content: center;
+        }
+        
+        body.sidebar-minimized #sidebarMenu .nav-link i {
+            margin-right: 0;
+        }
+        
+        body.sidebar-minimized #sidebarMenu .collapse {
+            display: none !important;
+        }
+        
+        body.sidebar-minimized #sidebarMenu .sidebar-footer {
+            flex-direction: column;
+            gap: 0.5rem;
+        }
+
+        body.sidebar-minimized #sidebar-toggle i {
+            transform: rotate(180deg);
+        }
+
+        .mobile-toggle-btn {
+            display: none;
+            font-size: 1.5rem;
+            color: var(--text-main);
+            background: none;
+            border: none;
+        }
+        
+        @media (max-width: 991.98px) {
             #main-content {
-                margin-left: var(--sidebar-width);
-                width: calc(100% - var(--sidebar-width));
+                margin-left: 0;
+            }
+
+            #sidebarMenu {
+                transform: translateX(-100%);
+                transition: transform 0.3s ease-in-out;
+                z-index: 1045;
+            }
+
+            body.sidebar-mobile-show #sidebarMenu {
+                transform: translateX(0);
+            }
+            
+            body.sidebar-mobile-show::before {
+                content: '';
+                position: fixed;
+                top: 0;
+                left: 0;
+                width: 100%;
+                height: 100%;
+                background: rgba(0,0,0,0.5);
+                z-index: 1040;
+            }
+
+            .mobile-toggle-btn {
+                display: block;
             }
         }
-
+        
         .content-card {
             background: var(--card-bg);
             border-radius: var(--radius-lg);
@@ -204,151 +274,191 @@ $koneksi->close();
     </style>
 </head>
 <body style="overflow-x: hidden;">
-    <div id="main-container">
-        <!-- SIDEBAR -->
-        <?php include 'sidebar.php'; ?>
+    
+    <?php include 'sidebar.php'; ?>
 
-        <!-- MAIN CONTENT -->
-        <div id="main-content" class="flex-grow-1 p-3 p-md-4">
-            <!-- Header -->
-            <header class="d-flex justify-content-between align-items-center mb-4">
+    <main id="main-content" class="flex-grow-1 p-3 p-md-4">
+        <header class="d-flex justify-content-between align-items-center mb-4">
+             <div class="d-flex align-items-center">
+                <button class="mobile-toggle-btn me-3" id="mobile-sidebar-toggle">
+                    <i class="bi bi-list"></i>
+                </button>
                 <div>
                     <h4 class="fw-bold mb-1 text-dark">Daftar Reservasi</h4>
                     <p class="text-muted mb-0" style="font-size: 0.9rem;">Kelola semua data reservasi</p>
                 </div>
-                <div>
-                    <a href="form_input_booking.php" class="btn btn-primary shadow-sm">
-                        <i class="bi bi-plus-lg me-1"></i>Tambah Booking
+            </div>
+            <div>
+                <a href="form_input_booking.php" class="btn btn-primary shadow-sm">
+                    <i class="bi bi-plus-lg me-1"></i>Tambah Booking
+                </a>
+            </div>
+        </header>
+
+        <!-- Filter Card -->
+        <div class="filter-card">
+            <form method="GET" action="" class="row g-3 align-items-end">
+                <div class="col-md-3">
+                    <label class="form-label small fw-medium">Status Booking</label>
+                    <select class="form-select" name="status">
+                        <option value="">Semua Status</option>
+                        <option value="Booking" <?php echo $filter_status == 'Booking' ? 'selected' : ''; ?>>Booking</option>
+                        <option value="Checked-in" <?php echo $filter_status == 'Checked-in' ? 'selected' : ''; ?>>Checked-in</option>
+                        <option value="Checked-out" <?php echo $filter_status == 'Checked-out' ? 'selected' : ''; ?>>Checked-out</option>
+                        <option value="Canceled" <?php echo $filter_status == 'Canceled' ? 'selected' : ''; ?>>Canceled</option>
+                    </select>
+                </div>
+                <div class="col-md-3">
+                    <label class="form-label small fw-medium">Platform</label>
+                    <select class="form-select" name="platform">
+                        <option value="">Semua Platform</option>
+                        <option value="OTS" <?php echo $filter_platform == 'OTS' ? 'selected' : ''; ?>>OTS</option>
+                        <option value="Internal" <?php echo $filter_platform == 'Internal' ? 'selected' : ''; ?>>Internal</option>
+                        <option value="Agoda" <?php echo $filter_platform == 'Agoda' ? 'selected' : ''; ?>>Agoda</option>
+                        <option value="Booking.com" <?php echo $filter_platform == 'Booking.com' ? 'selected' : ''; ?>>Booking.com</option>
+                        <option value="Traveloka" <?php echo $filter_platform == 'Traveloka' ? 'selected' : ''; ?>>Traveloka</option>
+                    </select>
+                </div>
+                <div class="col-md-3">
+                    <label class="form-label small fw-medium">Bulan</label>
+                    <input type="month" class="form-control" name="bulan" value="<?php echo htmlspecialchars($filter_bulan); ?>">
+                </div>
+                <div class="col-md-3">
+                    <label class="form-label small fw-medium">Pencarian</label>
+                    <div class="input-group">
+                        <input type="text" class="form-control" name="search" placeholder="Nama, No HP, Kamar..." value="<?php echo htmlspecialchars($search); ?>">
+                        <button class="btn btn-primary" type="submit">
+                            <i class="bi bi-search"></i>
+                        </button>
+                    </div>
+                </div>
+            </form>
+        </div>
+
+        <div class="content-card">
+            <div class="d-flex justify-content-between align-items-center mb-3">
+                <h6 class="mb-0">Total: <span class="text-primary fw-bold"><?php echo $result_reservasi->num_rows; ?></span> reservasi ditemukan</h6>
+            </div>
+
+            <?php if ($result_reservasi->num_rows > 0): ?>
+                <div class="table-responsive">
+                    <table class="table table-modern">
+                        <thead>
+                            <tr>
+                                <th>ID</th>
+                                <th>Tamu</th>
+                                <th>Kamar</th>
+                                <th>Check-in / out</th>
+                                <th>Durasi</th>
+                                <th>Platform</th>
+                                <th>Status</th>
+                                <th>Pembayaran</th>
+                                <th>Harga</th>
+                                <th>Aksi</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <?php while ($row = $result_reservasi->fetch_assoc()): 
+                                $checkin = new DateTime($row['tgl_checkin']);
+                                $checkout = new DateTime($row['tgl_checkout']);
+                                $durasi = $checkin->diff($checkout)->days;
+                            ?>
+                                <tr onclick="window.location='detail_reservasi.php?id=<?php echo $row['id_reservasi']; ?>'">
+                                    <td><span class="fw-bold text-primary">#<?php echo $row['id_reservasi']; ?></span></td>
+                                    <td>
+                                        <strong class="d-block"><?php echo htmlspecialchars($row['nama_lengkap']); ?></strong>
+                                        <small class="text-muted"><?php echo htmlspecialchars($row['no_hp']); ?></small>
+                                    </td>
+                                    <td>
+                                        <span class="d-block"><?php echo htmlspecialchars($row['nama_kamar']); ?></span>
+                                        <small class="text-muted"><?php echo htmlspecialchars($row['nama_properti']); ?></small>
+                                    </td>
+                                    <td>
+                                        <span class="d-block"><?php echo date('d M Y', strtotime($row['tgl_checkin'])); ?></span>
+                                        <small class="text-muted"><?php echo date('d M Y', strtotime($row['tgl_checkout'])); ?></small>
+                                    </td>
+                                    <td><?php echo $durasi; ?> malam</td>
+                                    <td>
+                                        <span class="badge bg-light text-dark fw-medium"><?php echo htmlspecialchars($row['platform_booking']); ?></span>
+                                    </td>
+                                    <td>
+                                        <span class="badge-status <?php echo strtolower(str_replace('-', '', $row['status_booking'])); ?>">
+                                            <?php echo $row['status_booking']; ?>
+                                        </span>
+                                    </td>
+                                    <td>
+                                        <span class="badge-payment <?php echo strtolower(str_replace(' ', '-', $row['status_pembayaran'])); ?>">
+                                            <?php echo $row['status_pembayaran']; ?>
+                                        </span>
+                                    </td>
+                                    <td>
+                                        <strong>Rp <?php echo number_format($row['harga_total'], 0, ',', '.'); ?></strong>
+                                    </td>
+                                    <td>
+                                        <a href="detail_reservasi.php?id=<?php echo $row['id_reservasi']; ?>" 
+                                           class="btn btn-sm btn-outline-primary" 
+                                           onclick="event.stopPropagation();">
+                                            <i class="bi bi-eye"></i>
+                                        </a>
+                                    </td>
+                                </tr>
+                            <?php endwhile; ?>
+                        </tbody>
+                    </table>
+                </div>
+            <?php else: ?>
+                <div class="text-center py-5">
+                    <i class="bi bi-inbox" style="font-size: 3rem; color: var(--text-muted); opacity: 0.3;"></i>
+                    <p class="text-muted mt-3">Tidak ada reservasi yang cocok dengan filter Anda.</p>
+                    <a href="form_input_booking.php" class="btn btn-primary mt-2">
+                        <i class="bi bi-plus-lg me-1"></i>Tambah Booking Baru
                     </a>
                 </div>
-            </header>
-
-            <!-- Filter Card -->
-            <div class="filter-card">
-                <form method="GET" action="" class="row g-3 align-items-end">
-                    <div class="col-md-3">
-                        <label class="form-label small fw-medium">Status Booking</label>
-                        <select class="form-select" name="status">
-                            <option value="">Semua Status</option>
-                            <option value="Booking" <?php echo $filter_status == 'Booking' ? 'selected' : ''; ?>>Booking</option>
-                            <option value="Checked-in" <?php echo $filter_status == 'Checked-in' ? 'selected' : ''; ?>>Checked-in</option>
-                            <option value="Checked-out" <?php echo $filter_status == 'Checked-out' ? 'selected' : ''; ?>>Checked-out</option>
-                            <option value="Canceled" <?php echo $filter_status == 'Canceled' ? 'selected' : ''; ?>>Canceled</option>
-                        </select>
-                    </div>
-                    <div class="col-md-3">
-                        <label class="form-label small fw-medium">Platform</label>
-                        <select class="form-select" name="platform">
-                            <option value="">Semua Platform</option>
-                            <option value="OTS" <?php echo $filter_platform == 'OTS' ? 'selected' : ''; ?>>OTS</option>
-                            <option value="Internal" <?php echo $filter_platform == 'Internal' ? 'selected' : ''; ?>>Internal</option>
-                            <option value="Agoda" <?php echo $filter_platform == 'Agoda' ? 'selected' : ''; ?>>Agoda</option>
-                            <option value="Booking.com" <?php echo $filter_platform == 'Booking.com' ? 'selected' : ''; ?>>Booking.com</option>
-                            <option value="Traveloka" <?php echo $filter_platform == 'Traveloka' ? 'selected' : ''; ?>>Traveloka</option>
-                        </select>
-                    </div>
-                    <div class="col-md-3">
-                        <label class="form-label small fw-medium">Bulan</label>
-                        <input type="month" class="form-control" name="bulan" value="<?php echo htmlspecialchars($filter_bulan); ?>">
-                    </div>
-                    <div class="col-md-3">
-                        <label class="form-label small fw-medium">Pencarian</label>
-                        <div class="input-group">
-                            <input type="text" class="form-control" name="search" placeholder="Nama, No HP, Kamar..." value="<?php echo htmlspecialchars($search); ?>">
-                            <button class="btn btn-primary" type="submit">
-                                <i class="bi bi-search"></i>
-                            </button>
-                        </div>
-                    </div>
-                </form>
-            </div>
-
-            <!-- Table Card -->
-            <div class="content-card">
-                <div class="d-flex justify-content-between align-items-center mb-3">
-                    <h6 class="mb-0">Total: <span class="text-primary fw-bold"><?php echo $result_reservasi->num_rows; ?></span> reservasi ditemukan</h6>
-                </div>
-
-                <?php if ($result_reservasi->num_rows > 0): ?>
-                    <div class="table-responsive">
-                        <table class="table table-modern">
-                            <thead>
-                                <tr>
-                                    <th>ID</th>
-                                    <th>Tamu</th>
-                                    <th>Kamar</th>
-                                    <th>Check-in / out</th>
-                                    <th>Durasi</th>
-                                    <th>Platform</th>
-                                    <th>Status</th>
-                                    <th>Pembayaran</th>
-                                    <th>Harga</th>
-                                    <th>Aksi</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                <?php while ($row = $result_reservasi->fetch_assoc()): 
-                                    $checkin = new DateTime($row['tgl_checkin']);
-                                    $checkout = new DateTime($row['tgl_checkout']);
-                                    $durasi = $checkin->diff($checkout)->days;
-                                ?>
-                                    <tr onclick="window.location='detail_reservasi.php?id=<?php echo $row['id_reservasi']; ?>'">
-                                        <td><span class="fw-bold text-primary">#<?php echo $row['id_reservasi']; ?></span></td>
-                                        <td>
-                                            <strong class="d-block"><?php echo htmlspecialchars($row['nama_lengkap']); ?></strong>
-                                            <small class="text-muted"><?php echo htmlspecialchars($row['no_hp']); ?></small>
-                                        </td>
-                                        <td>
-                                            <span class="d-block"><?php echo htmlspecialchars($row['nama_kamar']); ?></span>
-                                            <small class="text-muted"><?php echo htmlspecialchars($row['nama_properti']); ?></small>
-                                        </td>
-                                        <td>
-                                            <span class="d-block"><?php echo date('d M Y', strtotime($row['tgl_checkin'])); ?></span>
-                                            <small class="text-muted"><?php echo date('d M Y', strtotime($row['tgl_checkout'])); ?></small>
-                                        </td>
-                                        <td><?php echo $durasi; ?> malam</td>
-                                        <td>
-                                            <span class="badge bg-light text-dark fw-medium"><?php echo htmlspecialchars($row['platform_booking']); ?></span>
-                                        </td>
-                                        <td>
-                                            <span class="badge-status <?php echo strtolower(str_replace('-', '', $row['status_booking'])); ?>">
-                                                <?php echo $row['status_booking']; ?>
-                                            </span>
-                                        </td>
-                                        <td>
-                                            <span class="badge-payment <?php echo strtolower(str_replace(' ', '-', $row['status_pembayaran'])); ?>">
-                                                <?php echo $row['status_pembayaran']; ?>
-                                            </span>
-                                        </td>
-                                        <td>
-                                            <strong>Rp <?php echo number_format($row['harga_total'], 0, ',', '.'); ?></strong>
-                                        </td>
-                                        <td>
-                                            <a href="detail_reservasi.php?id=<?php echo $row['id_reservasi']; ?>" 
-                                               class="btn btn-sm btn-outline-primary" 
-                                               onclick="event.stopPropagation();">
-                                                <i class="bi bi-eye"></i>
-                                            </a>
-                                        </td>
-                                    </tr>
-                                <?php endwhile; ?>
-                            </tbody>
-                        </table>
-                    </div>
-                <?php else: ?>
-                    <div class="text-center py-5">
-                        <i class="bi bi-inbox" style="font-size: 3rem; color: var(--text-muted); opacity: 0.3;"></i>
-                        <p class="text-muted mt-3">Tidak ada reservasi yang cocok dengan filter Anda.</p>
-                        <a href="form_input_booking.php" class="btn btn-primary mt-2">
-                            <i class="bi bi-plus-lg me-1"></i>Tambah Booking Baru
-                        </a>
-                    </div>
-                <?php endif; ?>
-            </div>
+            <?php endif; ?>
         </div>
-    </div>
+    </main>
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // --- Sidebar Toggle Logic ---
+            const sidebarToggleBtn = document.getElementById('sidebar-toggle');
+            const mobileSidebarToggleBtn = document.getElementById('mobile-sidebar-toggle');
+            const body = document.body;
+
+            const toggleSidebar = () => {
+                body.classList.toggle('sidebar-minimized');
+                const isMinimized = body.classList.contains('sidebar-minimized');
+                localStorage.setItem('sidebarMinimized', isMinimized ? 'true' : 'false');
+            };
+
+            const toggleMobileSidebar = () => {
+                body.classList.toggle('sidebar-mobile-show');
+            };
+            
+            if (localStorage.getItem('sidebarMinimized') === 'true') {
+                body.classList.add('sidebar-minimized');
+            }
+
+            if (sidebarToggleBtn) {
+                sidebarToggleBtn.addEventListener('click', (e) => {
+                    e.preventDefault();
+                    toggleSidebar();
+                });
+            }
+            if (mobileSidebarToggleBtn) {
+                mobileSidebarToggleBtn.addEventListener('click', (e) => {
+                    e.preventDefault();
+                    toggleMobileSidebar();
+                });
+            }
+            
+            document.addEventListener('click', function(e) {
+                if (body.classList.contains('sidebar-mobile-show') && e.target.tagName.toLowerCase() !== 'i' && !e.target.closest('#sidebarMenu') && !e.target.closest('#mobile-sidebar-toggle')) {
+                    body.classList.remove('sidebar-mobile-show');
+                }
+            });
+        });
+    </script>
 </body>
 </html>
-

@@ -30,7 +30,6 @@ if ($is_edit_mode) {
     if ($result->num_rows > 0) {
         $reservasi_data = $result->fetch_assoc();
     } else {
-        // Redirect jika reservasi tidak ditemukan
         header("Location: daftar_reservasi.php");
         exit();
     }
@@ -62,22 +61,19 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     $jumlah_dp = isset($_POST['jumlah_dp']) ? (float)str_replace(['.', ','], '', $_POST['jumlah_dp']) : null;
     $catatan_operator = trim($_POST['catatan_operator'] ?? '');
     
-    // Jika status bukan DP, pastikan jumlah_dp null
     if ($status_pembayaran !== 'DP') {
         $jumlah_dp = null;
     }
     
-    // Sesuaikan checkin/checkout berdasarkan jenis booking
     if (strpos($jenis_booking, 'Transit') !== false) {
         $tgl_checkin = "$tgl_checkin_date $jam_checkin_time:00";
-        $tgl_checkout = "$tgl_checkin_date $jam_checkout_time:00"; // Asumsi transit di hari yang sama
+        $tgl_checkout = "$tgl_checkin_date $jam_checkout_time:00";
     } else {
-        $tgl_checkin = "$tgl_checkin_date 14:00:00"; // Default checkin jam 2 siang
-        $tgl_checkout = "$tgl_checkout_date 12:00:00"; // Default checkout jam 12 siang
+        $tgl_checkin = "$tgl_checkin_date 14:00:00";
+        $tgl_checkout = "$tgl_checkout_date 12:00:00";
     }
 
 
-    // Validasi dasar
     if (empty($nama_tamu) || empty($no_hp) || empty($tgl_checkin_date) || empty($id_kamar)) {
         $error_message = 'Semua field yang ditandai * tidak boleh kosong!';
     } elseif (($jenis_booking == 'Harian' || $jenis_booking == 'Guesthouse') && empty($tgl_checkout_date)) {
@@ -87,7 +83,6 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     } else {
         $koneksi->begin_transaction();
         try {
-            // 1. Urus data tamu (cari atau buat baru)
             $stmt_tamu = $koneksi->prepare("SELECT id_tamu FROM tbl_tamu WHERE no_hp = ?");
             $stmt_tamu->bind_param("s", $no_hp);
             $stmt_tamu->execute();
@@ -120,7 +115,6 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                 $success_message = "Reservasi berhasil diupdate!";
 
             } else {
-                // Logika INSERT untuk satu kamar
                 $stmt_reservasi = $koneksi->prepare("
                     INSERT INTO tbl_reservasi 
                     (id_kamar, id_tamu, tgl_checkin, tgl_checkout, harga_total, jumlah_tamu, 
@@ -145,7 +139,6 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     }
 }
 
-// Ambil semua properti untuk dropdown
 $result_properti = $koneksi->query("SELECT * FROM tbl_properti ORDER BY nama_properti");
 
 $koneksi->close();
@@ -179,6 +172,7 @@ $koneksi->close();
             --text-muted: #64748b;
             --border-color: #e2e8f0;
             --sidebar-width: 260px;
+            --sidebar-width-minimized: 90px;
             --sidebar-bg: #0f172a;
             --radius-md: 12px;
             --radius-lg: 16px;
@@ -188,18 +182,96 @@ $koneksi->close();
             font-family: 'Plus Jakarta Sans', sans-serif;
             background-color: var(--body-bg);
             color: var(--text-main);
+            display: flex;
+            min-height: 100vh;
         }
 
-        #main-container { display: flex; min-height: 100vh; }
         #main-content {
+            transition: margin-left 0.3s ease, width 0.3s ease;
             width: 100%;
-            transition: width 0.3s ease;
+            margin-left: var(--sidebar-width);
+        }
+        
+        body.sidebar-minimized #sidebarMenu {
+            width: var(--sidebar-width-minimized);
         }
 
-        @media (min-width: 992px) {
+        body.sidebar-minimized #main-content {
+            margin-left: var(--sidebar-width-minimized);
+        }
+
+        body.sidebar-minimized #sidebarMenu .menu-text,
+        body.sidebar-minimized #sidebarMenu .nav-link .bi-chevron-down {
+            opacity: 0;
+            width: 0;
+            visibility: hidden;
+        }
+
+        body.sidebar-minimized #sidebarMenu .sidebar-header {
+            justify-content: center !important;
+        }
+        
+        body.sidebar-minimized #sidebarMenu .sidebar-header .bi {
+             margin-right: 0 !important;
+        }
+        
+        body.sidebar-minimized #sidebarMenu .nav-link {
+            justify-content: center;
+        }
+        
+        body.sidebar-minimized #sidebarMenu .nav-link i {
+            margin-right: 0;
+        }
+        
+        body.sidebar-minimized #sidebarMenu .collapse {
+            display: none !important;
+        }
+        
+        body.sidebar-minimized #sidebarMenu .sidebar-footer {
+            flex-direction: column;
+            gap: 0.5rem;
+        }
+
+        body.sidebar-minimized #sidebar-toggle i {
+            transform: rotate(180deg);
+        }
+
+        .mobile-toggle-btn {
+            display: none;
+            font-size: 1.5rem;
+            color: var(--text-main);
+            background: none;
+            border: none;
+        }
+        
+        @media (max-width: 991.98px) {
             #main-content {
-                margin-left: var(--sidebar-width);
-                width: calc(100% - var(--sidebar-width));
+                margin-left: 0;
+            }
+
+            #sidebarMenu {
+                transform: translateX(-100%);
+                transition: transform 0.3s ease-in-out;
+                z-index: 1045;
+            }
+
+            body.sidebar-mobile-show #sidebarMenu {
+                transform: translateX(0);
+            }
+            
+            body.sidebar-mobile-show::before {
+                content: '';
+                position: fixed;
+                top: 0;
+                left: 0;
+                width: 100%;
+                height: 100%;
+                background: rgba(0,0,0,0.5);
+                z-index: 1040;
+            }
+
+            .mobile-toggle-btn {
+                display: block;
             }
         }
 
@@ -225,219 +297,233 @@ $koneksi->close();
             border-top: 1px solid var(--border-color);
             margin: 2rem 0;
         }
-        .price-display {
-            background-color: var(--primary-soft);
-            border-radius: var(--radius-md);
-            padding: 1rem;
-            text-align: center;
-        }
-        .price-display h4 {
-            color: var(--primary);
-            font-weight: 800;
-            margin: 0;
-        }
     </style>
 </head>
 <body style="overflow-x: hidden;">
-    <div id="main-container">
-        <!-- SIDEBAR -->
-        <?php include 'sidebar.php'; ?>
+    
+    <?php include 'sidebar.php'; ?>
 
-        <!-- MAIN CONTENT -->
-        <div id="main-content" class="flex-grow-1 p-3 p-md-4">
-            <!-- Header -->
-            <header class="d-flex justify-content-between align-items-center mb-4">
+    <main id="main-content" class="flex-grow-1 p-3 p-md-4">
+        <header class="d-flex justify-content-between align-items-center mb-4">
+            <div class="d-flex align-items-center">
+                <button class="mobile-toggle-btn me-3" id="mobile-sidebar-toggle">
+                    <i class="bi bi-list"></i>
+                </button>
                 <div>
                     <h4 class="fw-bold mb-1 text-dark"><?php echo $page_title; ?></h4>
                     <p class="text-muted mb-0" style="font-size: 0.9rem;"><?php echo $page_sub_title; ?></p>
                 </div>
-                <div>
-                    <a href="daftar_reservasi.php" class="btn btn-outline-secondary">
-                        <i class="bi bi-arrow-left me-1"></i>Kembali
-                    </a>
-                </div>
-            </header>
-
-            <!-- Alert Messages -->
-            <?php if (!empty($error_message)): ?>
-                <div class="alert alert-danger" role="alert">
-                    <i class="bi bi-exclamation-circle me-2"></i><?php echo htmlspecialchars($error_message); ?>
-                </div>
-            <?php endif; ?>
-
-            <?php if (!empty($success_message)): ?>
-                <div class="alert alert-success" role="alert">
-                    <i class="bi bi-check-circle me-2"></i><?php echo htmlspecialchars($success_message); ?>
-                    <small class="d-block">Mengalihkan ke halaman detail...</small>
-                </div>
-            <?php endif; ?>
-
-            <div class="content-card">
-                <form method="POST" action="" id="bookingForm">
-                    <h5 class="mb-4">Informasi Tamu</h5>
-                    <div class="row">
-                        <div class="col-md-6 mb-3">
-                            <label for="no_hp" class="form-label">No. HP <span class="text-danger">*</span></label>
-                            <input type="text" class="form-control" id="no_hp" name="no_hp" 
-                                   value="<?php echo htmlspecialchars($reservasi_data['no_hp'] ?? ''); ?>" required>
-                        </div>
-                        <div class="col-md-6 mb-3">
-                            <label for="nama_tamu" class="form-label">Nama Lengkap <span class="text-danger">*</span></label>
-                            <input type="text" class="form-control" id="nama_tamu" name="nama_tamu" 
-                                   value="<?php echo htmlspecialchars($reservasi_data['nama_lengkap'] ?? ''); ?>" required>
-                        </div>
-                    </div>
-                    <div class="mb-4">
-                        <label for="email" class="form-label">Email</label>
-                        <input type="email" class="form-control" id="email" name="email" 
-                               value="<?php echo htmlspecialchars($reservasi_data['email'] ?? ''); ?>">
-                    </div>
-
-                    <div class="section-divider"></div>
-
-                    <h5 class="mb-4">Detail Reservasi</h5>
-                    <div class="row">
-                        <div class="col-md-12 mb-3">
-                            <label for="jenis_booking" class="form-label">Jenis Booking <span class="text-danger">*</span></label>
-                            <select class="form-select" id="jenis_booking" name="jenis_booking" required onchange="handleBookingTypeChange()">
-                                <option value="Harian" selected>Harian</option>
-                                <option value="Guesthouse">Guesthouse</option>
-                                <option value="Transit 3 Jam">Transit 3 Jam</option>
-                                <option value="Transit 6 Jam">Transit 6 Jam</option>
-                            </select>
-                        </div>
-                    </div>
-
-                    <div class="row" id="harian-guesthouse-fields">
-                        <div class="col-md-6 mb-3">
-                            <label for="tgl_checkin" class="form-label">Tgl Check-in <span class="text-danger">*</span></label>
-                            <input type="date" class="form-control" id="tgl_checkin" name="tgl_checkin" 
-                                   value="<?php echo htmlspecialchars($reservasi_data['tgl_checkin'] ?? date('Y-m-d')); ?>" required>
-                        </div>
-                        <div class="col-md-6 mb-3">
-                            <label for="tgl_checkout" class="form-label">Tgl Check-out <span class="text-danger">*</span></label>
-                            <input type="date" class="form-control" id="tgl_checkout" name="tgl_checkout" 
-                                   value="<?php echo htmlspecialchars($reservasi_data['tgl_checkout'] ?? ''); ?>" required>
-                        </div>
-                    </div>
-
-
-                    <div class="row">
-                        <div class="col-md-6 mb-3">
-                            <label for="id_properti" class="form-label">Properti <span class="text-danger">*</span></label>
-                            <select class="form-select" id="id_properti" name="id_properti" required onchange="loadKamar()">
-                                <option value="">Pilih Properti</option>
-                                <?php 
-                                $selected_properti = $reservasi_data['id_properti'] ?? 0;
-                                $result_properti->data_seek(0);
-                                while ($prop = $result_properti->fetch_assoc()): 
-                                ?>
-                                    <option value="<?php echo $prop['id_properti']; ?>" <?php echo ($selected_properti == $prop['id_properti']) ? 'selected' : ''; ?>>
-                                        <?php echo htmlspecialchars($prop['nama_properti']); ?>
-                                    </option>
-                                <?php endwhile; ?>
-                            </select>
-                        </div>
-                        <div class="col-md-6 mb-3">
-                            <label for="id_kamar" class="form-label">Kamar <span class="text-danger">*</span></label>
-                            <select class="form-select" id="id_kamar" name="id_kamar" required>
-                                <option value="">Pilih Properti dahulu</option>
-                            </select>
-                        </div>
-                    </div>
-                    <!-- <div class="row" id="harian-guesthouse-fields">
-                        <div class="col-md-6 mb-3">
-                            <label for="tgl_checkin" class="form-label">Tgl Check-in <span class="text-danger">*</span></label>
-                            <input type="date" class="form-control" id="tgl_checkin" name="tgl_checkin" 
-                                   value="<?php echo htmlspecialchars($reservasi_data['tgl_checkin'] ?? date('Y-m-d')); ?>" required>
-                        </div>
-                        <div class="col-md-6 mb-3">
-                            <label for="tgl_checkout" class="form-label">Tgl Check-out <span class="text-danger">*</span></label>
-                            <input type="date" class="form-control" id="tgl_checkout" name="tgl_checkout" 
-                                   value="<?php echo htmlspecialchars($reservasi_data['tgl_checkout'] ?? ''); ?>" required>
-                        </div>
-                    </div> -->
-                     <div class="row d-none" id="transit-fields">
-                        <div class="col-md-6 mb-3">
-                            <label for="jam_checkin" class="form-label">Jam Check-in <span class="text-danger">*</span></label>
-                            <input type="time" class="form-control" id="jam_checkin" name="jam_checkin">
-                        </div>
-                        <div class="col-md-6 mb-3">
-                            <label for="jam_checkout" class="form-label">Jam Check-out</label>
-                            <input type="time" class="form-control" id="jam_checkout" name="jam_checkout" readonly>
-                        </div>
-                    </div>
-                     <div class="row">
-                        <div class="col-md-6 mb-4">
-                            <label for="jumlah_tamu" class="form-label">Jumlah Tamu <span class="text-danger">*</span></label>
-                            <input type="number" class="form-control" id="jumlah_tamu" name="jumlah_tamu" 
-                                   value="<?php echo htmlspecialchars($reservasi_data['jumlah_tamu'] ?? '1'); ?>" required min="1">
-                        </div>
-                        <div class="col-md-6 mb-4">
-                            <label for="platform_booking" class="form-label">Platform</label>
-                            <select class="form-select" id="platform_booking" name="platform_booking">
-                                <?php $platform = $reservasi_data['platform_booking'] ?? 'OTS'; ?>
-                                <option value="OTS" <?php echo ($platform == 'OTS') ? 'selected' : ''; ?>>OTS</option>
-                                <option value="Internal" <?php echo ($platform == 'Internal') ? 'selected' : ''; ?>>Internal</option>
-                                <option value="Agoda" <?php echo ($platform == 'Agoda') ? 'selected' : ''; ?>>Agoda</option>
-                                <option value="Booking.com" <?php echo ($platform == 'Booking.com') ? 'selected' : ''; ?>>Booking.com</option>
-                                <option value="Traveloka" <?php echo ($platform == 'Traveloka') ? 'selected' : ''; ?>>Traveloka</option>
-                            </select>
-                        </div>
-                    </div>
-
-                    <div class="section-divider"></div>
-                     <h5 class="mb-4">Pembayaran & Catatan</h5>
-                    <div class="row align-items-center">
-                        <div class="col-md-4 mb-3">
-                            <label for="status_pembayaran" class="form-label">Status Pembayaran</label>
-                            <select class="form-select" id="status_pembayaran" name="status_pembayaran">
-                                <?php $status_pembayaran = $reservasi_data['status_pembayaran'] ?? 'Belum Bayar'; ?>
-                                <option value="Belum Bayar" <?php echo ($status_pembayaran == 'Belum Bayar') ? 'selected' : ''; ?>>Belum Bayar</option>
-                                <option value="DP" <?php echo ($status_pembayaran == 'DP') ? 'selected' : ''; ?>>DP</option>
-                                <option value="Lunas" <?php echo ($status_pembayaran == 'Lunas') ? 'selected' : ''; ?>>Lunas</option>
-                            </select>
-                        </div>
-                         <div class="col-md-8 mb-3">
-                            <label for="harga_total" class="form-label">Total Harga</label>
-                            <div class="input-group">
-                                <span class="input-group-text">Rp</span>
-                                <input type="text" class="form-control" id="harga_total" name="harga_total" value="<?php echo htmlspecialchars($reservasi_data['harga_total'] ?? '0'); ?>">
-                            </div>
-                        </div>
-                    </div>
-                    <div class="row">
-                        <div class="col-md-12 mb-3 d-none" id="dp_field">
-                             <label for="jumlah_dp" class="form-label">Jumlah DP</label>
-                            <div class="input-group">
-                                <span class="input-group-text">Rp</span>
-                                <input type="text" class="form-control" id="jumlah_dp" name="jumlah_dp" value="<?php echo htmlspecialchars($reservasi_data['jumlah_dp'] ?? '0'); ?>">
-                            </div>
-                        </div>
-                    </div>
-
-                    <div class="mb-4">
-                        <label for="catatan_operator" class="form-label">Catatan</label>
-                        <textarea class="form-control" id="catatan_operator" name="catatan_operator" rows="3" placeholder="Catatan untuk reservasi..."><?php echo htmlspecialchars($reservasi_data['catatan_operator'] ?? ''); ?></textarea>
-                    </div>
-
-                    <div class="d-grid gap-2 d-md-flex justify-content-md-end">
-                        <button type="submit" class="btn btn-primary px-4 py-2">
-                            <i class="bi bi-check-lg me-2"></i><?php echo $is_edit_mode ? 'Update Reservasi' : 'Simpan Booking'; ?>
-                        </button>
-                    </div>
-                </form>
             </div>
+            <div>
+                <a href="daftar_reservasi.php" class="btn btn-outline-secondary">
+                    <i class="bi bi-arrow-left me-1"></i>Kembali
+                </a>
+            </div>
+        </header>
+
+        <?php if (!empty($error_message)): ?>
+            <div class="alert alert-danger" role="alert">
+                <i class="bi bi-exclamation-circle me-2"></i><?php echo htmlspecialchars($error_message); ?>
+            </div>
+        <?php endif; ?>
+
+        <?php if (!empty($success_message)): ?>
+            <div class="alert alert-success" role="alert">
+                <i class="bi bi-check-circle me-2"></i><?php echo htmlspecialchars($success_message); ?>
+                <small class="d-block">Mengalihkan ke halaman detail...</small>
+            </div>
+        <?php endif; ?>
+
+        <div class="content-card">
+            <form method="POST" action="" id="bookingForm">
+                <h5 class="mb-4">Informasi Tamu</h5>
+                <div class="row">
+                    <div class="col-md-6 mb-3">
+                        <label for="no_hp" class="form-label">No. HP <span class="text-danger">*</span></label>
+                        <input type="text" class="form-control" id="no_hp" name="no_hp" 
+                               value="<?php echo htmlspecialchars($reservasi_data['no_hp'] ?? ''); ?>" required>
+                    </div>
+                    <div class="col-md-6 mb-3">
+                        <label for="nama_tamu" class="form-label">Nama Lengkap <span class="text-danger">*</span></label>
+                        <input type="text" class="form-control" id="nama_tamu" name="nama_tamu" 
+                               value="<?php echo htmlspecialchars($reservasi_data['nama_lengkap'] ?? ''); ?>" required>
+                    </div>
+                </div>
+                <div class="mb-4">
+                    <label for="email" class="form-label">Email</label>
+                    <input type="email" class="form-control" id="email" name="email" 
+                           value="<?php echo htmlspecialchars($reservasi_data['email'] ?? ''); ?>">
+                </div>
+
+                <div class="section-divider"></div>
+
+                <h5 class="mb-4">Detail Reservasi</h5>
+                <div class="row">
+                    <div class="col-md-12 mb-3">
+                        <label for="jenis_booking" class="form-label">Jenis Booking <span class="text-danger">*</span></label>
+                        <select class="form-select" id="jenis_booking" name="jenis_booking" required onchange="handleBookingTypeChange()">
+                            <option value="Harian" selected>Harian</option>
+                            <option value="Guesthouse">Guesthouse</option>
+                            <option value="Transit 3 Jam">Transit 3 Jam</option>
+                            <option value="Transit 6 Jam">Transit 6 Jam</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="row" id="harian-guesthouse-fields">
+                    <div class="col-md-6 mb-3">
+                        <label for="tgl_checkin" class="form-label">Tgl Check-in <span class="text-danger">*</span></label>
+                        <input type="date" class="form-control" id="tgl_checkin" name="tgl_checkin" 
+                               value="<?php echo htmlspecialchars($reservasi_data['tgl_checkin'] ?? date('Y-m-d')); ?>" required>
+                    </div>
+                    <div class="col-md-6 mb-3">
+                        <label for="tgl_checkout" class="form-label">Tgl Check-out <span class="text-danger">*</span></label>
+                        <input type="date" class="form-control" id="tgl_checkout" name="tgl_checkout" 
+                               value="<?php echo htmlspecialchars($reservasi_data['tgl_checkout'] ?? ''); ?>" required>
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="col-md-6 mb-3">
+                        <label for="id_properti" class="form-label">Properti <span class="text-danger">*</span></label>
+                        <select class="form-select" id="id_properti" name="id_properti" required onchange="loadKamar()">
+                            <option value="">Pilih Properti</option>
+                            <?php 
+                            $selected_properti = $reservasi_data['id_properti'] ?? 0;
+                            $result_properti->data_seek(0);
+                            while ($prop = $result_properti->fetch_assoc()): 
+                            ?>
+                                <option value="<?php echo $prop['id_properti']; ?>" <?php echo ($selected_properti == $prop['id_properti']) ? 'selected' : ''; ?>>
+                                    <?php echo htmlspecialchars($prop['nama_properti']); ?>
+                                </option>
+                            <?php endwhile; ?>
+                        </select>
+                    </div>
+                    <div class="col-md-6 mb-3">
+                        <label for="id_kamar" class="form-label">Kamar <span class="text-danger">*</span></label>
+                        <select class="form-select" id="id_kamar" name="id_kamar" required>
+                            <option value="">Pilih Properti dahulu</option>
+                        </select>
+                    </div>
+                </div>
+                 <div class="row d-none" id="transit-fields">
+                    <div class="col-md-6 mb-3">
+                        <label for="jam_checkin" class="form-label">Jam Check-in <span class="text-danger">*</span></label>
+                        <input type="time" class="form-control" id="jam_checkin" name="jam_checkin">
+                    </div>
+                    <div class="col-md-6 mb-3">
+                        <label for="jam_checkout" class="form-label">Jam Check-out</label>
+                        <input type="time" class="form-control" id="jam_checkout" name="jam_checkout" readonly>
+                    </div>
+                </div>
+                 <div class="row">
+                    <div class="col-md-6 mb-4">
+                        <label for="jumlah_tamu" class="form-label">Jumlah Tamu <span class="text-danger">*</span></label>
+                        <input type="number" class="form-control" id="jumlah_tamu" name="jumlah_tamu" 
+                               value="<?php echo htmlspecialchars($reservasi_data['jumlah_tamu'] ?? '1'); ?>" required min="1">
+                    </div>
+                    <div class="col-md-6 mb-4">
+                        <label for="platform_booking" class="form-label">Platform</label>
+                        <select class="form-select" id="platform_booking" name="platform_booking">
+                            <?php $platform = $reservasi_data['platform_booking'] ?? 'OTS'; ?>
+                            <option value="OTS" <?php echo ($platform == 'OTS') ? 'selected' : ''; ?>>OTS</option>
+                            <option value="Internal" <?php echo ($platform == 'Internal') ? 'selected' : ''; ?>>Internal</option>
+                            <option value="Agoda" <?php echo ($platform == 'Agoda') ? 'selected' : ''; ?>>Agoda</option>
+                            <option value="Booking.com" <?php echo ($platform == 'Booking.com') ? 'selected' : ''; ?>>Booking.com</option>
+                            <option value="Traveloka" <?php echo ($platform == 'Traveloka') ? 'selected' : ''; ?>>Traveloka</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="section-divider"></div>
+                 <h5 class="mb-4">Pembayaran & Catatan</h5>
+                <div class="row align-items-center">
+                    <div class="col-md-4 mb-3">
+                        <label for="status_pembayaran" class="form-label">Status Pembayaran</label>
+                        <select class="form-select" id="status_pembayaran" name="status_pembayaran">
+                            <?php $status_pembayaran = $reservasi_data['status_pembayaran'] ?? 'Belum Bayar'; ?>
+                            <option value="Belum Bayar" <?php echo ($status_pembayaran == 'Belum Bayar') ? 'selected' : ''; ?>>Belum Bayar</option>
+                            <option value="DP" <?php echo ($status_pembayaran == 'DP') ? 'selected' : ''; ?>>DP</option>
+                            <option value="Lunas" <?php echo ($status_pembayaran == 'Lunas') ? 'selected' : ''; ?>>Lunas</option>
+                        </select>
+                    </div>
+                     <div class="col-md-8 mb-3">
+                        <label for="harga_total" class="form-label">Total Harga</label>
+                        <div class="input-group">
+                            <span class="input-group-text">Rp</span>
+                            <input type="text" class="form-control" id="harga_total" name="harga_total" value="<?php echo htmlspecialchars($reservasi_data['harga_total'] ?? '0'); ?>">
+                        </div>
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="col-md-12 mb-3 d-none" id="dp_field">
+                         <label for="jumlah_dp" class="form-label">Jumlah DP</label>
+                        <div class="input-group">
+                            <span class="input-group-text">Rp</span>
+                            <input type="text" class="form-control" id="jumlah_dp" name="jumlah_dp" value="<?php echo htmlspecialchars($reservasi_data['jumlah_dp'] ?? '0'); ?>">
+                        </div>
+                    </div>
+                </div>
+
+                <div class="mb-4">
+                    <label for="catatan_operator" class="form-label">Catatan</label>
+                    <textarea class="form-control" id="catatan_operator" name="catatan_operator" rows="3" placeholder="Catatan untuk reservasi..."><?php echo htmlspecialchars($reservasi_data['catatan_operator'] ?? ''); ?></textarea>
+                </div>
+
+                <div class="d-grid gap-2 d-md-flex justify-content-md-end">
+                    <button type="submit" class="btn btn-primary px-4 py-2">
+                        <i class="bi bi-check-lg me-2"></i><?php echo $is_edit_mode ? 'Update Reservasi' : 'Simpan Booking'; ?>
+                    </button>
+                </div>
+            </form>
         </div>
-    </div>
+    </main>
 
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
     <script>
-        const isEditMode = <?php echo $is_edit_mode ? 'true' : 'false'; ?>;
-        const editingId = <?php echo $is_edit_mode ? $id_reservasi_edit : '0'; ?>;
-        const initialSelectedKamar = <?php echo json_encode($is_edit_mode ? [(int)$reservasi_data['id_kamar']] : []); ?>;
+        document.addEventListener('DOMContentLoaded', function() {
+            // --- Sidebar Toggle Logic ---
+            const sidebarToggleBtn = document.getElementById('sidebar-toggle');
+            const mobileSidebarToggleBtn = document.getElementById('mobile-sidebar-toggle');
+            const body = document.body;
 
-        document.addEventListener("DOMContentLoaded", function() {
-            // Set min date untuk checkin
+            const toggleSidebar = () => {
+                body.classList.toggle('sidebar-minimized');
+                const isMinimized = body.classList.contains('sidebar-minimized');
+                localStorage.setItem('sidebarMinimized', isMinimized ? 'true' : 'false');
+            };
+
+            const toggleMobileSidebar = () => {
+                body.classList.toggle('sidebar-mobile-show');
+            };
+            
+            if (localStorage.getItem('sidebarMinimized') === 'true') {
+                body.classList.add('sidebar-minimized');
+            }
+
+            if (sidebarToggleBtn) {
+                sidebarToggleBtn.addEventListener('click', (e) => {
+                    e.preventDefault();
+                    toggleSidebar();
+                });
+            }
+            if (mobileSidebarToggleBtn) {
+                mobileSidebarToggleBtn.addEventListener('click', (e) => {
+                    e.preventDefault();
+                    toggleMobileSidebar();
+                });
+            }
+            
+            document.addEventListener('click', function(e) {
+                if (body.classList.contains('sidebar-mobile-show') && e.target.tagName.toLowerCase() !== 'i' && !e.target.closest('#sidebarMenu') && !e.target.closest('#mobile-sidebar-toggle')) {
+                    body.classList.remove('sidebar-mobile-show');
+                }
+            });
+
+            // --- Form Specific Logic ---
+            const isEditMode = <?php echo $is_edit_mode ? 'true' : 'false'; ?>;
+            const editingId = <?php echo $is_edit_mode ? $id_reservasi_edit : '0'; ?>;
+            const initialSelectedKamar = <?php echo json_encode($is_edit_mode ? [(int)$reservasi_data['id_kamar']] : []); ?>;
+            
             const today = new Date().toISOString().split('T')[0];
             const checkinInput = document.getElementById('tgl_checkin');
             checkinInput.min = today;
@@ -452,14 +538,12 @@ $koneksi->close();
                 loadKamar();
             });
             
-            // Add listeners to all fields that affect availability
             document.getElementById('tgl_checkout').addEventListener('change', () => loadKamar());
             document.getElementById('jam_checkin').addEventListener('change', () => {
                 updateTransitCheckoutTime();
                 loadKamar();
             });
 
-            // Initial setup
             handleBookingTypeChange();
             
             if (isEditMode && document.getElementById('id_properti').value) {
@@ -468,7 +552,6 @@ $koneksi->close();
                 loadKamar();
             }
 
-            // Listener untuk status pembayaran
             const statusPembayaranSelect = document.getElementById('status_pembayaran');
             const dpField = document.getElementById('dp_field');
 
@@ -510,7 +593,6 @@ $koneksi->close();
             const jamCheckinInput = document.getElementById('jam_checkin');
             const kamarSelect = document.getElementById('id_kamar');
 
-            // Always a single select dropdown
             kamarSelect.multiple = false;
             kamarSelect.size = 1;
 
@@ -519,15 +601,15 @@ $koneksi->close();
                 transitFields.classList.remove('d-none');
                 tglCheckoutInput.required = false;
                 jamCheckinInput.required = true;
-            } else { // Harian or Guesthouse
+            } else { 
                 harianGuesthouseFields.classList.remove('d-none');
                 transitFields.classList.add('d-none');
                 tglCheckoutInput.required = true;
                 jamCheckinInput.required = false;
             }
             
-            updateTransitCheckoutTime(); // Update time just in case
-            loadKamar(initialSelectedKamar); // Reload rooms with new booking type context
+            updateTransitCheckoutTime();
+            loadKamar(isEditMode ? [<?php echo (int)($reservasi_data['id_kamar'] ?? 0); ?>] : []);
         }
 
         function loadKamar(selectedKamarIds = []) {
@@ -547,7 +629,7 @@ $koneksi->close();
                 return;
             }
 
-            let queryString = `properti=${idProperti}&jenis_booking=${bookingType}&editing_id=${editingId}`;
+            let queryString = `properti=${idProperti}&jenis_booking=${bookingType}&editing_id=${isEditMode ? <?php echo $id_reservasi_edit; ?> : 0}`;
             
             let canFetch = false;
             if (bookingType.includes('Transit')) {
@@ -557,7 +639,7 @@ $koneksi->close();
                 } else {
                     kamarSelect.innerHTML = '<option value="">Pilih tanggal & jam transit</option>';
                 }
-            } else { // Harian or Guesthouse
+            } else { 
                 if (checkinDate && checkoutDate) {
                     queryString += `&checkin=${checkinDate}&checkout=${checkoutDate}`;
                     canFetch = true;
@@ -585,7 +667,6 @@ $koneksi->close();
                         option.value = kamarIdInt;
                         option.textContent = `${kamar.nama_kamar} - Rp ${parseInt(kamar.harga_default).toLocaleString('id-ID')}`;
                         
-                        // Select the room if it's in edit mode
                         if (selectedKamarIds && selectedKamarIds.includes(kamarIdInt)) {
                             option.selected = true;
                         }
@@ -593,7 +674,6 @@ $koneksi->close();
                         kamarSelect.appendChild(option);
                     });
                     
-                    // Always keep the dropdown enabled
                     kamarSelect.disabled = false;
                 })
                 .catch(error => {
@@ -604,4 +684,3 @@ $koneksi->close();
     </script>
 </body>
 </html>
-

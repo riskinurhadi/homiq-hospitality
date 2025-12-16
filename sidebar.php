@@ -12,14 +12,14 @@ $is_pengaturan_page = (strpos($current_page, 'manajemen_') === 0 || $current_pag
             <div class="sidebar-header d-flex align-items-center justify-content-center py-3 mb-3">
                 <a href="dashboard.php" class="text-decoration-none text-white fs-5 fw-bold">
                     <i class="bi bi-buildings-fill me-2"></i>
-                    <span>HomiQ</span>
+                    <span class="menu-text">HomiQ</span>
                 </a>
             </div>
         <ul class="nav flex-column sidebar-nav">
             <li class="nav-item">
                 <a class="nav-link <?php echo ($current_page == 'dashboard.php') ? 'active' : ''; ?>" href="dashboard.php">
                     <i class="bi bi-grid-3x3-gap"></i>
-                    <span>Dashboard</span>
+                    <span class="menu-text">Dashboard</span>
                 </a>
             </li>
             
@@ -27,19 +27,19 @@ $is_pengaturan_page = (strpos($current_page, 'manajemen_') === 0 || $current_pag
                 <li class="nav-item">
                     <a class="nav-link <?php echo (in_array($current_page, ['daftar_reservasi.php', 'form_input_booking.php', 'detail_reservasi.php'])) ? 'active' : ''; ?>" href="daftar_reservasi.php">
                         <i class="bi bi-calendar-check"></i>
-                        <span>Reservasi</span>
+                        <span class="menu-text">Reservasi</span>
                     </a>
                 </li>
                 <li class="nav-item">
                     <a class="nav-link <?php echo ($current_page == 'daftar_tamu_checkout.php') ? 'active' : ''; ?>" href="daftar_tamu_checkout.php">
                         <i class="bi bi-person-check"></i>
-                        <span>Tamu Checkout</span>
+                        <span class="menu-text">Tamu Checkout</span>
                     </a>
                 </li>
                 <li class="nav-item">
                     <a class="nav-link" href="#">
                         <i class="bi bi-people"></i>
-                        <span>Data Tamu</span>
+                        <span class="menu-text">Data Tamu</span>
                     </a>
                 </li>
             <?php endif; ?>
@@ -48,13 +48,13 @@ $is_pengaturan_page = (strpos($current_page, 'manajemen_') === 0 || $current_pag
                 <li class="nav-item">
                     <a class="nav-link" href="#">
                         <i class="bi bi-house-check"></i>
-                        <span>Status Kamar</span>
+                        <span class="menu-text">Status Kamar</span>
                     </a>
                 </li>
                 <li class="nav-item">
                     <a class="nav-link" href="#">
                         <i class="bi bi-wrench-adjustable"></i>
-                        <span>Maintenance</span>
+                        <span class="menu-text">Maintenance</span>
                     </a>
                 </li>
             <?php endif; ?>
@@ -63,7 +63,7 @@ $is_pengaturan_page = (strpos($current_page, 'manajemen_') === 0 || $current_pag
                 <li class="nav-item">
                     <a class="nav-link" href="#">
                         <i class="bi bi-journal-text"></i>
-                        <span>Laporan</span>
+                        <span class="menu-text">Laporan</span>
                     </a>
                 </li>
                 <li class="nav-item">
@@ -74,7 +74,7 @@ $is_pengaturan_page = (strpos($current_page, 'manajemen_') === 0 || $current_pag
                        aria-expanded="<?php echo $is_pengaturan_page ? 'true' : 'false'; ?>" 
                        aria-controls="submenu-pengaturan">
                         <i class="bi bi-gear-wide-connected"></i>
-                        <span>Pengaturan</span>
+                        <span class="menu-text">Pengaturan</span>
                         <i class="bi bi-chevron-down ms-auto"></i>
                     </a>
                     <div class="collapse <?php echo $is_pengaturan_page ? 'show' : ''; ?>" id="submenu-pengaturan">
@@ -100,15 +100,14 @@ $is_pengaturan_page = (strpos($current_page, 'manajemen_') === 0 || $current_pag
             <?php endif; ?>
         </ul>
 
-        <div class="sidebar-logout">
-            <ul class="nav flex-column sidebar-nav">
-                <li class="nav-item">
-                    <a class="nav-link nav-link-logout" href="logout.php">
-                        <i class="bi bi-box-arrow-right"></i>
-                        <span>Keluar</span>
-                    </a>
-                </li>
-            </ul>
+        <div class="sidebar-footer">
+            <a href="#" class="sidebar-toggle-btn" id="sidebar-toggle">
+                <i class="bi bi-chevron-left"></i>
+            </a>
+            <a class="nav-link nav-link-logout" href="logout.php">
+                <i class="bi bi-box-arrow-right"></i>
+                <span class="menu-text">Keluar</span>
+            </a>
         </div>
         </div>
     </div>
@@ -122,8 +121,11 @@ $is_pengaturan_page = (strpos($current_page, 'manajemen_') === 0 || $current_pag
         top: 0;
         left: 0;
         bottom: 0;
-        z-index: 1030;
-        transition: all 0.3s ease;
+        z-index: 1040;
+        transition: width 0.3s ease;
+    }
+    .sidebar-header .menu-text {
+        transition: opacity 0.3s ease;
     }
 
     .sidebar-nav .nav-link {
@@ -135,6 +137,7 @@ $is_pengaturan_page = (strpos($current_page, 'manajemen_') === 0 || $current_pag
         align-items: center;
         font-weight: 500;
         transition: background-color 0.2s, color 0.2s;
+        white-space: nowrap;
     }
 
     .sidebar-nav .nav-link i {
@@ -143,6 +146,10 @@ $is_pengaturan_page = (strpos($current_page, 'manajemen_') === 0 || $current_pag
         width: 24px;
         text-align: center;
         transition: all 0.2s ease-in-out;
+    }
+    
+    .sidebar-nav .nav-link .menu-text {
+        transition: opacity 0.2s ease-in-out;
     }
 
     .sidebar-nav .nav-link:hover {
@@ -165,17 +172,48 @@ $is_pengaturan_page = (strpos($current_page, 'manajemen_') === 0 || $current_pag
         font-weight: 600;
     }
 
-    .sidebar-logout {
+    .sidebar-footer {
         margin-top: auto;
         padding: 1rem;
         border-top: 1px solid rgba(255, 255, 255, 0.1);
+        display: flex;
+        align-items: center;
+        gap: 1rem;
     }
 
-    .sidebar-logout .nav-link-logout {
+    .sidebar-footer .nav-link-logout {
+        flex-grow: 1;
         background-color: rgba(255,255,255,0.05);
+        color: rgba(255, 255, 255, 0.7);
+        display: flex;
+        align-items: center;
+        padding: 0.7rem 1rem;
+        border-radius: 8px;
+        white-space: nowrap;
     }
-    .sidebar-logout .nav-link-logout:hover {
+    .sidebar-footer .nav-link-logout:hover {
         background-color: rgba(239, 71, 111, 0.2);
         color: #fff;
+    }
+
+    .sidebar-toggle-btn {
+        background: rgba(255,255,255,0.1);
+        color: #fff;
+        border: none;
+        border-radius: 8px;
+        width: 38px;
+        height: 38px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.2rem;
+        text-decoration: none;
+        transition: all 0.3s ease;
+    }
+    .sidebar-toggle-btn:hover {
+        background: var(--primary);
+    }
+    .sidebar-toggle-btn i {
+        transition: transform 0.3s ease;
     }
 </style>
