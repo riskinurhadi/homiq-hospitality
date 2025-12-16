@@ -357,7 +357,7 @@ $koneksi->close();
                             </select>
                         </div>
                     </div>
-                    <div class="row" id="harian-guesthouse-fields">
+                    <!-- <div class="row" id="harian-guesthouse-fields">
                         <div class="col-md-6 mb-3">
                             <label for="tgl_checkin" class="form-label">Tgl Check-in <span class="text-danger">*</span></label>
                             <input type="date" class="form-control" id="tgl_checkin" name="tgl_checkin" 
@@ -368,7 +368,7 @@ $koneksi->close();
                             <input type="date" class="form-control" id="tgl_checkout" name="tgl_checkout" 
                                    value="<?php echo htmlspecialchars($reservasi_data['tgl_checkout'] ?? ''); ?>" required>
                         </div>
-                    </div>
+                    </div> -->
                      <div class="row d-none" id="transit-fields">
                         <div class="col-md-6 mb-3">
                             <label for="jam_checkin" class="form-label">Jam Check-in <span class="text-danger">*</span></label>
@@ -616,3 +616,4 @@ $koneksi->close();
     </script>
 </body>
 </html>
+
