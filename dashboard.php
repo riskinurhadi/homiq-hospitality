@@ -151,6 +151,10 @@ $koneksi->close();
             min-height: 100vh;
         }
 
+        .has-bottom-nav #main-content {
+            margin-left: 0 !important;
+        }
+
         /* --- Main Layout --- */
         .wrapper {
             display: flex;
@@ -421,7 +425,7 @@ $koneksi->close();
         .res-status.checked-in { background: #d1fae5; color: #059669; }
     </style>
 </head>
-<body>
+<body class="<?php if (isset($_SESSION['role']) && $_SESSION['role'] === 'Housekeeping') { echo 'has-bottom-nav'; } ?>">
     <div class="wrapper">
         <!-- SIDEBAR -->
         <?php include 'sidebar.php'; ?>
@@ -524,7 +528,7 @@ $koneksi->close();
             <!-- Main Content Row -->
             <div class="row g-4">
                 <!-- Calendar View -->
-                <div class="col-12 col-lg-7 col-xl-8">
+                <div class="<?php echo (isset($_SESSION['role']) && $_SESSION['role'] === 'Housekeeping') ? 'col-12' : 'col-12 col-lg-7 col-xl-8'; ?>">
                     <div class="calendar-wrapper">
                         <div class="calendar-header">
                             <div class="d-flex align-items-center">
@@ -647,6 +651,7 @@ $koneksi->close();
                 </div>
 
                 <!-- Sidebar Widget -->
+                <?php if (!isset($_SESSION['role']) || $_SESSION['role'] !== 'Housekeeping'): ?>
                 <div class="col-12 col-lg-5 col-xl-4">
                     <div class="card-modern p-4">
                         <div class="widget-header">
