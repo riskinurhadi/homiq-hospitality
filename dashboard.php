@@ -163,14 +163,6 @@ $koneksi->close();
             transition: margin-left 0.3s ease;
         }
         
-        body.sidebar-minimized #main-content {
-            margin-left: var(--sidebar-width-minimized);
-        }
-        
-        body.sidebar-minimized #sidebar-toggle i {
-            transform: rotate(180deg);
-        }
-
         .mobile-toggle-btn {
             display: none;
             font-size: 1.5rem;
@@ -442,9 +434,6 @@ $koneksi->close();
                     <button class="mobile-toggle-btn me-3 d-lg-none" id="mobile-sidebar-toggle">
                         <i class="bi bi-list"></i>
                     </button>
-                    <button class="btn btn-light d-none d-lg-block me-3" id="sidebar-toggle" style="width: 40px; height: 40px;">
-                        <i class="bi bi-list"></i>
-                    </button>
                     <div>
                         <h4 class="fw-bold mb-1 text-dark">Dashboard</h4>
                         <p class="text-muted mb-0" style="font-size: 0.9rem;">Selamat datang kembali, <?php echo htmlspecialchars($nama_lengkap); ?>! 👋</p>
@@ -701,33 +690,13 @@ $koneksi->close();
     <script>
         document.addEventListener('DOMContentLoaded', function() {
             // --- Sidebar Toggle Logic ---
-            const sidebarToggleBtn = document.getElementById('sidebar-toggle');
             const mobileSidebarToggleBtn = document.getElementById('mobile-sidebar-toggle');
             const body = document.body;
-
-            const setupSidebar = () => {
-                const isMinimized = localStorage.getItem('sidebarMinimized') === 'true';
-                if(isMinimized) {
-                    body.classList.add('sidebar-minimized');
-                }
-            }
-
-            const toggleSidebar = () => {
-                body.classList.toggle('sidebar-minimized');
-                const isMinimized = body.classList.contains('sidebar-minimized');
-                localStorage.setItem('sidebarMinimized', isMinimized ? 'true' : 'false');
-            };
 
             const toggleMobileSidebar = () => {
                 body.classList.toggle('sidebar-mobile-show');
             };
 
-            if (sidebarToggleBtn) {
-                sidebarToggleBtn.addEventListener('click', (e) => {
-                    e.preventDefault();
-                    toggleSidebar();
-                });
-            }
             if (mobileSidebarToggleBtn) {
                 mobileSidebarToggleBtn.addEventListener('click', (e) => {
                     e.preventDefault();
@@ -742,8 +711,6 @@ $koneksi->close();
                 }
             });
 
-            // Apply initial state
-            setupSidebar();
         });
     </script>
 </body>
