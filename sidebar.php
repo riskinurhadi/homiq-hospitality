@@ -18,9 +18,9 @@ if ($role_user == 'housekeeping') :
         <i class="bi bi-door-open"></i>
         <span class="bottom-nav-label">Kamar</span>
     </a>
-    <a href="#" class="bottom-nav-item">
-        <i class="bi bi-bell"></i>
-        <span class="bottom-nav-label">Notifikasi</span>
+    <a href="checklist_kamar.php" class="bottom-nav-item <?php echo ($current_page == 'checklist_kamar.php') ? 'active' : ''; ?>">
+        <i class="bi bi-check2-square"></i>
+        <span class="bottom-nav-label">Checklist</span>
     </a>
     <a href="#" class="bottom-nav-item">
         <i class="bi bi-person"></i>
@@ -125,6 +125,15 @@ if ($role_user == 'housekeeping') :
                 <a class="sidebar-link <?php echo ($current_page == 'daftar_tamu_checkout.php') ? 'active' : ''; ?>" href="daftar_tamu_checkout.php">
                     <i class="bi bi-person-check"></i>
                     <span>Tamu Checkout</span>
+                </a>
+            </li>
+            <?php endif; ?>
+
+            <?php if (in_array($role_user, ['admin'])): ?>
+             <li class="sidebar-item">
+                <a class="sidebar-link <?php echo ($current_page == 'checklist_kamar.php') ? 'active' : ''; ?>" href="checklist_kamar.php">
+                    <i class="bi bi-check2-square"></i>
+                    <span>Checklist Kamar</span>
                 </a>
             </li>
             <?php endif; ?>
