@@ -132,6 +132,7 @@ $koneksi->close();
             --text-muted: #64748b;
             --border-color: #e2e8f0;
             --sidebar-width: 260px;
+            --sidebar-width-minimized: 90px;
             --sidebar-bg: #0f172a;
             --radius-md: 12px;
             --radius-lg: 16px;
@@ -144,17 +145,59 @@ $koneksi->close();
             font-family: 'Plus Jakarta Sans', sans-serif;
             background-color: var(--body-bg);
             color: var(--text-main);
+            display: flex;
             min-height: 100vh;
         }
 
-        .wrapper {
-            display: flex;
+        #main-content {
+            transition: margin-left 0.3s ease, width 0.3s ease;
+            width: 100%;
+            margin-left: var(--sidebar-width);
+            flex-grow: 1;
+        }
+        
+        body.sidebar-minimized #sidebarMenu {
+            width: var(--sidebar-width-minimized);
         }
 
-        #main-content {
-            flex-grow: 1;
-            transition: margin-left 0.35s ease-in-out;
-            min-width: 0; /* Mencegah konten lebar merusak layout */
+        body.sidebar-minimized #main-content {
+            margin-left: var(--sidebar-width-minimized);
+        }
+
+        body.sidebar-minimized #sidebarMenu .menu-text,
+        body.sidebar-minimized #sidebarMenu .nav-link .bi-chevron-down {
+            opacity: 0;
+            width: 0;
+            visibility: hidden;
+        }
+
+        body.sidebar-minimized #sidebarMenu .sidebar-header {
+            justify-content: center !important;
+        }
+        
+        body.sidebar-minimized #sidebarMenu .sidebar-header .bi {
+             margin-right: 0 !important;
+        }
+        
+        body.sidebar-minimized #sidebarMenu .nav-link {
+            justify-content: center;
+        }
+        
+        body.sidebar-minimized #sidebarMenu .nav-link i {
+            margin-right: 0;
+        }
+        
+        body.sidebar-minimized #sidebarMenu .collapse {
+            display: none !important;
+        }
+        
+        body.sidebar-minimized #sidebarMenu .sidebar-footer {
+            flex-direction: column;
+            gap: 0.5rem;
+        }
+
+        body.sidebar-minimized #sidebar-toggle i {
+            transform: rotate(180deg);
         }
 
         .mobile-toggle-btn {
@@ -164,13 +207,37 @@ $koneksi->close();
             background: none;
             border: none;
         }
-
+        
         @media (max-width: 991.98px) {
+            #main-content {
+                margin-left: 0;
+            }
+
+            #sidebarMenu {
+                transform: translateX(-100%);
+                transition: transform 0.3s ease-in-out;
+                z-index: 1045;
+            }
+
+            body.sidebar-mobile-show #sidebarMenu {
+                transform: translateX(0);
+            }
+            
+            body.sidebar-mobile-show::before {
+                content: '';
+                position: fixed;
+                top: 0;
+                left: 0;
+                width: 100%;
+                height: 100%;
+                background: rgba(0,0,0,0.5);
+                z-index: 1040;
+            }
+
             .mobile-toggle-btn {
                 display: block;
             }
         }
-
         /* CARDS */
         .card-modern {
             background: var(--card-bg);
@@ -410,289 +477,310 @@ $koneksi->close();
         .res-status.checked-in { background: #d1fae5; color: #059669; }
     </style>
 </head>
-<body>
-    <div class="wrapper">
-        <!-- SIDEBAR -->
-        <?php include 'sidebar.php'; ?>
+<body style="overflow-x: hidden;">
 
-        <!-- MAIN CONTENT -->
-        <main id="main-content" class="p-3 p-md-4">
-            <!-- Header -->
-            <header class="d-flex justify-content-between align-items-center mb-4">
-                <div class="d-flex align-items-center">
-                    <button class="mobile-toggle-btn me-3" id="mobile-sidebar-toggle">
-                        <i class="bi bi-list"></i>
-                    </button>
-                    <div>
-                        <h4 class="fw-bold mb-1 text-dark">Dashboard</h4>
-                        <p class="text-muted mb-0" style="font-size: 0.9rem;">Selamat datang kembali, <?php echo htmlspecialchars($nama_lengkap); ?>! 👋</p>
-                    </div>
-                </div>
-                <div class="d-flex align-items-center gap-3">
-                    <div class="d-none d-md-block">
-                        <div class="input-group">
-                            <span class="input-group-text bg-white border-end-0 rounded-start-pill ps-3"><i class="bi bi-search text-muted"></i></span>
-                            <input type="text" class="form-control border-start-0 rounded-end-pill" placeholder="Cari reservasi..." style="max-width: 200px;">
-                        </div>
-                    </div>
+    <?php include 'sidebar.php'; ?>
 
-                    <div class="dropdown">
-                        <a class="d-flex align-items-center text-decoration-none" href="#" role="button" data-bs-toggle="dropdown">
-                            <div class="bg-white p-1 rounded-circle shadow-sm">
-                                <img src="https://ui-avatars.com/api/?name=<?php echo urlencode($nama_lengkap); ?>&background=4361ee&color=fff&size=128&bold=true" 
-                                     alt="User" style="width: 38px; height: 38px; border-radius: 50%;">
-                            </div>
-                        </a>
-                        <ul class="dropdown-menu dropdown-menu-end shadow-lg border-0 rounded-3 mt-2">
-                            <li><h6 class="dropdown-header">Akun Saya</h6></li>
-                            <li><a class="dropdown-item" href="#"><i class="bi bi-person me-2"></i> Profil</a></li>
-                            <li><a class="dropdown-item" href="#"><i class="bi bi-gear me-2"></i> Pengaturan</a></li>
-                            <li><hr class="dropdown-divider"></li>
-                            <li><a class="dropdown-item" href="logout.php"><i class="bi bi-box-arrow-right me-2"></i> Logout</a></li>
-                        </ul>
-                    </div>
-                </div>
-            </header>
-
-            <!-- Statistics Cards -->
-            <div class="row g-4 mb-4">
-                <div class="col-xl-3 col-md-6">
-                    <div class="card-modern">
-                        <div class="stat-card-body">
-                            <div>
-                                <div class="stat-value"><?php echo $stat_reservasi_aktif; ?></div>
-                                <div class="stat-label">Reservasi Aktif</div>
-                            </div>
-                            <div class="stat-icon blue">
-                                <i class="bi bi-calendar-check"></i>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-                <div class="col-xl-3 col-md-6">
-                    <div class="card-modern">
-                        <div class="stat-card-body">
-                            <div>
-                                <div class="stat-value"><?php echo $stat_kamar_tersedia; ?></div>
-                                <div class="stat-label">Kamar Tersedia</div>
-                            </div>
-                            <div class="stat-icon green">
-                                <i class="bi bi-door-open"></i>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-                <div class="col-xl-3 col-md-6">
-                    <div class="card-modern">
-                        <div class="stat-card-body">
-                            <div>
-                                <div class="stat-value"><?php echo $stat_tamu_hari_ini; ?></div>
-                                <div class="stat-label">Tamu Check-in Hari Ini</div>
-                            </div>
-                            <div class="stat-icon orange">
-                                <i class="bi bi-people"></i>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-                <div class="col-xl-3 col-md-6">
-                    <div class="card-modern">
-                        <div class="stat-card-body">
-                            <div>
-                                <div class="stat-value"><?php echo $okupansi_percent; ?>%</div>
-                                <div class="stat-label">Okupansi Bulan Ini</div>
-                            </div>
-                            <div class="stat-icon purple">
-                                <i class="bi bi-graph-up-arrow"></i>
-                            </div>
-                        </div>
-                    </div>
+    <main id="main-content" class="p-3 p-md-4">
+        <!-- Header -->
+        <header class="d-flex justify-content-between align-items-center mb-4">
+            <div class="d-flex align-items-center">
+                <button class="mobile-toggle-btn me-3" id="mobile-sidebar-toggle">
+                    <i class="bi bi-list"></i>
+                </button>
+                <div>
+                    <h4 class="fw-bold mb-1 text-dark">Dashboard</h4>
+                    <p class="text-muted mb-0" style="font-size: 0.9rem;">Selamat datang kembali, <?php echo htmlspecialchars($nama_lengkap); ?>! 👋</p>
                 </div>
             </div>
-
-            <!-- Main Content Row -->
-            <div class="row g-4">
-                <!-- Calendar View -->
-                <div class="col-12 col-lg-7 col-xl-8">
-                    <div class="calendar-wrapper">
-                        <div class="calendar-header">
-                            <div class="d-flex align-items-center">
-                                <div class="bg-light rounded-circle p-2 me-3 text-primary">
-                                    <i class="bi bi-calendar-range fs-5"></i>
-                                </div>
-                                <div>
-                                    <h5 class="mb-0 fw-bold"><?php echo date('F Y', mktime(0, 0, 0, $current_month, 1, $current_year)); ?></h5>
-                                    <small class="text-muted">Overview Ketersediaan</small>
-                                </div>
-                            </div>
-                            <div class="btn-group shadow-sm" role="group">
-                                <?php
-                                $prev_month = $current_month - 1;
-                                $prev_year = $current_year;
-                                if ($prev_month < 1) {
-                                    $prev_month = 12;
-                                    $prev_year--;
-                                }
-                                $next_month = $current_month + 1;
-                                $next_year = $current_year;
-                                if ($next_month > 12) {
-                                    $next_month = 1;
-                                    $next_year++;
-                                }
-                                ?>
-                                <a href="?month=<?php echo $prev_month; ?>&year=<?php echo $prev_year; ?>" class="btn btn-outline-light text-dark border-end-0">
-                                    <i class="bi bi-chevron-left"></i>
-                                </a>
-                                <a href="?month=<?php echo date('n'); ?>&year=<?php echo date('Y'); ?>" class="btn btn-outline-light text-dark fw-medium">
-                                    Hari Ini
-                                </a>
-                                <a href="?month=<?php echo $next_month; ?>&year=<?php echo $next_year; ?>" class="btn btn-outline-light text-dark border-start-0">
-                                    <i class="bi bi-chevron-right"></i>
-                                </a>
-                            </div>
-                        </div>
-
-                        <div class="calendar-scroll">
-                            <table class="calendar-table">
-                                <thead>
-                                    <tr>
-                                        <th class="room-col">Kamar</th>
-                                        <?php for ($day = 1; $day <= $days_in_month; $day++): 
-                                            $day_name = date('D', mktime(0, 0, 0, $current_month, $day, $current_year));
-                                            $is_today = ($day == date('d') && $current_month == date('n') && $current_year == date('Y'));
-                                        ?>
-                                            <th class="<?php echo $is_today ? 'text-primary' : ''; ?>" style="min-width: 60px;">
-                                                <div style="font-size: 1.1rem;"><?php echo $day; ?></div>
-                                                <small class="text-muted fw-normal" style="font-size: 0.7rem; text-transform: uppercase;"><?php echo $day_name; ?></small>
-                                            </th>
-                                        <?php endfor; ?>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    <?php if (empty($kamar_list)): ?>
-                                        <tr>
-                                            <td colspan="<?php echo $days_in_month + 1; ?>" class="text-center py-5 text-muted">
-                                                <i class="bi bi-inbox fs-1 opacity-25"></i>
-                                                <p class="mt-3">Belum ada kamar yang terdaftar. Silakan tambahkan kamar di menu Pengaturan.</p>
-                                            </td>
-                                        </tr>
-                                    <?php else: ?>
-                                        <?php foreach ($kamar_list as $kamar): 
-                                            $kamar_id = $kamar['id_kamar'];
-                                            $kamar_reservasi = $reservasi_map[$kamar_id] ?? [];
-                                        ?>
-                                            <tr>
-                                                <td class="room-col">
-                                                    <div class="d-flex flex-column">
-                                                        <span><?php echo htmlspecialchars($kamar['nama_kamar']); ?></span>
-                                                        <small class="text-muted fw-normal" style="font-size: 0.75rem;"><?php echo htmlspecialchars($kamar['nama_properti']); ?></small>
-                                                    </div>
-                                                </td>
-                                                <?php for ($day = 1; $day <= $days_in_month; $day++): 
-                                                    $current_date = sprintf('%04d-%02d-%02d', $current_year, $current_month, $day);
-                                                    $is_today = ($day == date('d') && $current_month == date('n') && $current_year == date('Y'));
-                                                    
-                                                    // Cari reservasi yang aktif di tanggal ini
-                                                    $active_booking = null;
-                                                    foreach ($kamar_reservasi as $res) {
-                                                        // Bandingkan hanya bagian tanggal (YYYY-MM-DD)
-                                                        $checkin_date_part = substr($res['tgl_checkin'], 0, 10);
-                                                        $checkout_date_part = substr($res['tgl_checkout'], 0, 10);
-                                                        
-                                                        if (($current_date >= $checkin_date_part && $current_date < $checkout_date_part) || ($checkin_date_part === $checkout_date_part && $current_date === $checkin_date_part)) {
-                                                            $active_booking = $res;
-                                                            break;
-                                                        }
-                                                    }
-                                                ?>
-                                                    <td class="calendar-day-cell <?php echo $is_today ? 'today' : ''; ?>">
-                                                        <!-- <div class="calendar-day-number"><?php echo $day; ?></div> -->
-                                                        <?php if ($active_booking): 
-                                                            $status_class = '';
-                                                            if ($active_booking['status_booking'] == 'Checked-in') $status_class = 'checked-in';
-                                                            elseif ($active_booking['status_booking'] == 'Booking') $status_class = 'booking';
-                                                            if ($active_booking['status_booking'] == 'Checked-out') $status_class = 'checked-out';
-                                                            
-                                                            $payment_class = '';
-                                                            if ($active_booking['status_pembayaran'] == 'Lunas') $payment_class = 'lunas';
-                                                            if ($active_booking['status_pembayaran'] == 'Belum Bayar') $payment_class = 'belum-bayar';
-                                                        ?>
-                                                            <div class="booking-pill <?php echo $status_class . ' ' . $payment_class; ?>" 
-                                                                 title="<?php echo htmlspecialchars($active_booking['nama_tamu']); ?> - <?php echo htmlspecialchars($active_booking['nama_kamar']); ?>">
-                                                                <?php echo htmlspecialchars(substr($active_booking['nama_tamu'], 0, 12)); ?>..
-                                                            </div>
-                                                        <?php else: ?>
-                                                            
-                                                        <?php endif; ?>
-                                                    </td>
-                                                <?php endfor; ?>
-                                            </tr>
-                                        <?php endforeach; ?>
-                                    <?php endif; ?>
-                                </tbody>
-                            </table>
-                        </div>
+            <div class="d-flex align-items-center gap-3">
+                <div class="d-none d-md-block">
+                    <div class="input-group">
+                        <span class="input-group-text bg-white border-end-0 rounded-start-pill ps-3"><i class="bi bi-search text-muted"></i></span>
+                        <input type="text" class="form-control border-start-0 rounded-end-pill" placeholder="Cari reservasi..." style="max-width: 200px;">
                     </div>
                 </div>
 
-                <!-- Sidebar Widget -->
-                <div class="col-12 col-lg-5 col-xl-4">
-                    <div class="card-modern p-4">
-                        <div class="widget-header">
-                            <h5 class="widget-title">Reservasi Mendatang</h5>
-                            <a href="#" class="text-decoration-none text-primary small fw-bold">Lihat Semua</a>
+                <div class="dropdown">
+                    <a class="d-flex align-items-center text-decoration-none" href="#" role="button" data-bs-toggle="dropdown">
+                        <div class="bg-white p-1 rounded-circle shadow-sm">
+                            <img src="https://ui-avatars.com/api/?name=<?php echo urlencode($nama_lengkap); ?>&background=4361ee&color=fff&size=128&bold=true" 
+                                 alt="User" style="width: 38px; height: 38px; border-radius: 50%;">
                         </div>
+                    </a>
+                    <ul class="dropdown-menu dropdown-menu-end shadow-lg border-0 rounded-3 mt-2">
+                        <li><h6 class="dropdown-header">Akun Saya</h6></li>
+                        <li><a class="dropdown-item" href="#"><i class="bi bi-person me-2"></i> Profil</a></li>
+                        <li><a class="dropdown-item" href="#"><i class="bi bi-gear me-2"></i> Pengaturan</a></li>
+                        <li><hr class="dropdown-divider"></li>
+                        <li><a class="dropdown-item" href="logout.php"><i class="bi bi-box-arrow-right me-2"></i> Logout</a></li>
+                    </ul>
+                </div>
+            </div>
+        </header>
+
+        <!-- Statistics Cards -->
+        <div class="row g-4 mb-4">
+            <div class="col-xl-3 col-md-6">
+                <div class="card-modern">
+                    <div class="stat-card-body">
                         <div>
-                            <?php if ($result_reservasi_terbaru->num_rows > 0): ?>
-                                <?php while ($row = $result_reservasi_terbaru->fetch_assoc()): ?>
-                                    <div class="res-item">
-                                        <div class="res-avatar">
-                                            <?php echo strtoupper(substr($row['nama_lengkap'], 0, 1)); ?>
-                                        </div>
-                                        <div class="res-info">
-                                            <h6><?php echo htmlspecialchars(substr($row['nama_lengkap'], 0, 15)); ?></h6>
-                                            <p><?php echo htmlspecialchars($row['nama_kamar']); ?></p>
-                                            <p class="text-primary mt-1" style="font-size: 0.7rem;">
-                                                <i class="bi bi-calendar-event me-1"></i>
-                                                <?php echo date('d M', strtotime($row['tgl_checkin'])); ?>
-                                            </p>
-                                        </div>
-                                        <span class="res-status <?php echo strtolower(str_replace('-', '', $row['status_booking'])); ?>">
-                                            <?php echo $row['status_booking']; ?>
-                                        </span>
-                                    </div>
-                                <?php endwhile; ?>
-                            <?php else: ?>
-                                <div class="text-center py-4">
-                                    <i class="bi bi-calendar-x text-muted fs-1 opacity-25"></i>
-                                    <p class="text-muted small mt-2">Tidak ada reservasi mendatang</p>
-                                </div>
-                            <?php endif; ?>
+                            <div class="stat-value"><?php echo $stat_reservasi_aktif; ?></div>
+                            <div class="stat-label">Reservasi Aktif</div>
+                        </div>
+                        <div class="stat-icon blue">
+                            <i class="bi bi-calendar-check"></i>
                         </div>
                     </div>
                 </div>
             </div>
-        </main>
-    </div>
+            <div class="col-xl-3 col-md-6">
+                <div class="card-modern">
+                    <div class="stat-card-body">
+                        <div>
+                            <div class="stat-value"><?php echo $stat_kamar_tersedia; ?></div>
+                            <div class="stat-label">Kamar Tersedia</div>
+                        </div>
+                        <div class="stat-icon green">
+                            <i class="bi bi-door-open"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-xl-3 col-md-6">
+                <div class="card-modern">
+                    <div class="stat-card-body">
+                        <div>
+                            <div class="stat-value"><?php echo $stat_tamu_hari_ini; ?></div>
+                            <div class="stat-label">Tamu Check-in Hari Ini</div>
+                        </div>
+                        <div class="stat-icon orange">
+                            <i class="bi bi-people"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-xl-3 col-md-6">
+                <div class="card-modern">
+                    <div class="stat-card-body">
+                        <div>
+                            <div class="stat-value"><?php echo $okupansi_percent; ?>%</div>
+                            <div class="stat-label">Okupansi Bulan Ini</div>
+                        </div>
+                        <div class="stat-icon purple">
+                            <i class="bi bi-graph-up-arrow"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Main Content Row -->
+        <div class="row g-4">
+            <!-- Calendar View -->
+            <div class="col-12">
+                <div class="calendar-wrapper">
+                    <div class="calendar-header">
+                        <div class="d-flex align-items-center">
+                            <div class="bg-light rounded-circle p-2 me-3 text-primary">
+                                <i class="bi bi-calendar-range fs-5"></i>
+                            </div>
+                            <div>
+                                <h5 class="mb-0 fw-bold"><?php echo date('F Y', mktime(0, 0, 0, $current_month, 1, $current_year)); ?></h5>
+                                <small class="text-muted">Overview Ketersediaan</small>
+                            </div>
+                        </div>
+                        <div class="btn-group shadow-sm" role="group">
+                            <?php
+                            $prev_month = $current_month - 1;
+                            $prev_year = $current_year;
+                            if ($prev_month < 1) {
+                                $prev_month = 12;
+                                $prev_year--;
+                            }
+                            $next_month = $current_month + 1;
+                            $next_year = $current_year;
+                            if ($next_month > 12) {
+                                $next_month = 1;
+                                $next_year++;
+                            }
+                            ?>
+                            <a href="?month=<?php echo $prev_month; ?>&year=<?php echo $prev_year; ?>" class="btn btn-outline-light text-dark border-end-0">
+                                <i class="bi bi-chevron-left"></i>
+                            </a>
+                            <a href="?month=<?php echo date('n'); ?>&year=<?php echo date('Y'); ?>" class="btn btn-outline-light text-dark fw-medium">
+                                Hari Ini
+                            </a>
+                            <a href="?month=<?php echo $next_month; ?>&year=<?php echo $next_year; ?>" class="btn btn-outline-light text-dark border-start-0">
+                                <i class="bi bi-chevron-right"></i>
+                            </a>
+                        </div>
+                    </div>
+
+                    <div class="calendar-scroll">
+                        <table class="calendar-table">
+                            <thead>
+                                <tr>
+                                    <th class="room-col">Kamar</th>
+                                    <?php for ($day = 1; $day <= $days_in_month; $day++): 
+                                        $day_name = date('D', mktime(0, 0, 0, $current_month, $day, $current_year));
+                                        $is_today = ($day == date('d') && $current_month == date('n') && $current_year == date('Y'));
+                                    ?>
+                                        <th class="<?php echo $is_today ? 'text-primary' : ''; ?>" style="min-width: 60px;">
+                                            <div style="font-size: 1.1rem;"><?php echo $day; ?></div>
+                                            <small class="text-muted fw-normal" style="font-size: 0.7rem; text-transform: uppercase;"><?php echo $day_name; ?></small>
+                                        </th>
+                                    <?php endfor; ?>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <?php if (empty($kamar_list)): ?>
+                                    <tr>
+                                        <td colspan="<?php echo $days_in_month + 1; ?>" class="text-center py-5 text-muted">
+                                            <i class="bi bi-inbox fs-1 opacity-25"></i>
+                                            <p class="mt-3">Belum ada kamar yang terdaftar. Silakan tambahkan kamar di menu Pengaturan.</p>
+                                        </td>
+                                    </tr>
+                                <?php else: ?>
+                                    <?php foreach ($kamar_list as $kamar): 
+                                        $kamar_id = $kamar['id_kamar'];
+                                        $kamar_reservasi = $reservasi_map[$kamar_id] ?? [];
+                                    ?>
+                                        <tr>
+                                            <td class="room-col">
+                                                <div class="d-flex flex-column">
+                                                    <span><?php echo htmlspecialchars($kamar['nama_kamar']); ?></span>
+                                                    <small class="text-muted fw-normal" style="font-size: 0.75rem;"><?php echo htmlspecialchars($kamar['nama_properti']); ?></small>
+                                                </div>
+                                            </td>
+                                            <?php for ($day = 1; $day <= $days_in_month; $day++): 
+                                                $current_date = sprintf('%04d-%02d-%02d', $current_year, $current_month, $day);
+                                                $is_today = ($day == date('d') && $current_month == date('n') && $current_year == date('Y'));
+                                                
+                                                // Cari reservasi yang aktif di tanggal ini
+                                                $active_booking = null;
+                                                foreach ($kamar_reservasi as $res) {
+                                                    // Bandingkan hanya bagian tanggal (YYYY-MM-DD)
+                                                    $checkin_date_part = substr($res['tgl_checkin'], 0, 10);
+                                                    $checkout_date_part = substr($res['tgl_checkout'], 0, 10);
+                                                    
+                                                    if (($current_date >= $checkin_date_part && $current_date < $checkout_date_part) || ($checkin_date_part === $checkout_date_part && $current_date === $checkin_date_part)) {
+                                                        $active_booking = $res;
+                                                        break;
+                                                    }
+                                                }
+                                            ?>
+                                                <td class="calendar-day-cell <?php echo $is_today ? 'today' : ''; ?>">
+                                                    <!-- <div class="calendar-day-number"><?php echo $day; ?></div> -->
+                                                    <?php if ($active_booking): 
+                                                        $status_class = '';
+                                                        if ($active_booking['status_booking'] == 'Checked-in') $status_class = 'checked-in';
+                                                        elseif ($active_booking['status_booking'] == 'Booking') $status_class = 'booking';
+                                                        if ($active_booking['status_booking'] == 'Checked-out') $status_class = 'checked-out';
+                                                        
+                                                        $payment_class = '';
+                                                        if ($active_booking['status_pembayaran'] == 'Lunas') $payment_class = 'lunas';
+                                                        if ($active_booking['status_pembayaran'] == 'Belum Bayar') $payment_class = 'belum-bayar';
+                                                    ?>
+                                                        <div class="booking-pill <?php echo $status_class . ' ' . $payment_class; ?>" 
+                                                             title="<?php echo htmlspecialchars($active_booking['nama_tamu']); ?> - <?php echo htmlspecialchars($active_booking['nama_kamar']); ?>">
+                                                            <?php echo htmlspecialchars(substr($active_booking['nama_tamu'], 0, 12)); ?>..
+                                                        </div>
+                                                    <?php else: ?>
+                                                        
+                                                    <?php endif; ?>
+                                                </td>
+                                            <?php endfor; ?>
+                                        </tr>
+                                    <?php endforeach; ?>
+                                <?php endif; ?>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Sidebar Widget -->
+            <div class="col-12 col-lg-5 col-xl-4 mt-4">
+                <div class="card-modern p-4">
+                    <div class="widget-header">
+                        <h5 class="widget-title">Reservasi Mendatang</h5>
+                        <a href="#" class="text-decoration-none text-primary small fw-bold">Lihat Semua</a>
+                    </div>
+                    <div>
+                        <?php if ($result_reservasi_terbaru->num_rows > 0): ?>
+                            <?php while ($row = $result_reservasi_terbaru->fetch_assoc()): ?>
+                                <div class="res-item">
+                                    <div class="res-avatar">
+                                        <?php echo strtoupper(substr($row['nama_lengkap'], 0, 1)); ?>
+                                    </div>
+                                    <div class="res-info">
+                                        <h6><?php echo htmlspecialchars(substr($row['nama_lengkap'], 0, 15)); ?></h6>
+                                        <p><?php echo htmlspecialchars($row['nama_kamar']); ?></p>
+                                        <p class="text-primary mt-1" style="font-size: 0.7rem;">
+                                            <i class="bi bi-calendar-event me-1"></i>
+                                            <?php echo date('d M', strtotime($row['tgl_checkin'])); ?>
+                                        </p>
+                                    </div>
+                                    <span class="res-status <?php echo strtolower(str_replace('-', '', $row['status_booking'])); ?>">
+                                        <?php echo $row['status_booking']; ?>
+                                    </span>
+                                </div>
+                            <?php endwhile; ?>
+                        <?php else: ?>
+                            <div class="text-center py-4">
+                                <i class="bi bi-calendar-x text-muted fs-1 opacity-25"></i>
+                                <p class="text-muted small mt-2">Tidak ada reservasi mendatang</p>
+                            </div>
+                        <?php endif; ?>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
     <script>
         document.addEventListener('DOMContentLoaded', function() {
+            // --- Sidebar Toggle Logic ---
+            const sidebarToggleBtn = document.getElementById('sidebar-toggle');
             const mobileSidebarToggleBtn = document.getElementById('mobile-sidebar-toggle');
-            if (mobileSidebarToggleBtn) {
-                mobileSidebarToggleBtn.addEventListener('click', function(e) {
+            const body = document.body;
+
+            const toggleSidebar = () => {
+                body.classList.toggle('sidebar-minimized');
+                const isMinimized = body.classList.contains('sidebar-minimized');
+                localStorage.setItem('sidebarMinimized', isMinimized ? 'true' : 'false');
+            };
+
+            const toggleMobileSidebar = () => {
+                body.classList.toggle('sidebar-mobile-show');
+            };
+            
+            if (localStorage.getItem('sidebarMinimized') === 'true') {
+                body.classList.add('sidebar-minimized');
+            }
+
+            if (sidebarToggleBtn) {
+                sidebarToggleBtn.addEventListener('click', (e) => {
                     e.preventDefault();
-                    document.body.classList.toggle('sidebar-mobile-show');
+                    toggleSidebar();
+                });
+            }
+            if (mobileSidebarToggleBtn) {
+                mobileSidebarToggleBtn.addEventListener('click', (e) => {
+                    e.preventDefault();
+                    toggleMobileSidebar();
                 });
             }
             
-            // Add a listener to close the sidebar when clicking on the overlay
             document.addEventListener('click', function(e) {
-                if (document.body.classList.contains('sidebar-mobile-show') && !e.target.closest('#sidebarMenu') && !e.target.closest('#mobile-sidebar-toggle')) {
-                    document.body.classList.remove('sidebar-mobile-show');
+                if (body.classList.contains('sidebar-mobile-show') && e.target.tagName.toLowerCase() !== 'i' && !e.target.closest('#sidebarMenu') && !e.target.closest('#mobile-sidebar-toggle')) {
+                    body.classList.remove('sidebar-mobile-show');
                 }
             });
         });
     </script>
 </body>
 </html>
+
