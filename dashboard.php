@@ -153,8 +153,8 @@ $koneksi->close();
 
         #main-content {
             flex-grow: 1;
-            margin-left: var(--sidebar-width);
             transition: margin-left 0.35s ease-in-out;
+            min-width: 0; /* Mencegah konten lebar merusak layout */
         }
 
         .mobile-toggle-btn {
@@ -166,9 +166,6 @@ $koneksi->close();
         }
 
         @media (max-width: 991.98px) {
-            #main-content {
-                margin-left: 0;
-            }
             .mobile-toggle-btn {
                 display: block;
             }
@@ -413,7 +410,7 @@ $koneksi->close();
         .res-status.checked-in { background: #d1fae5; color: #059669; }
     </style>
 </head>
-<body style="overflow-x: hidden;">
+<body>
     <div class="wrapper">
         <!-- SIDEBAR -->
         <?php include 'sidebar.php'; ?>
