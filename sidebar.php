@@ -259,6 +259,9 @@ $is_manajemen_page = strpos($current_page, 'manajemen_') === 0;
         opacity: 0;
         visibility: hidden;
         transition: opacity 0.1s ease;
+        width: 0;
+        overflow: hidden;
+        white-space: nowrap;
     }
     
     body.sidebar-minimized .sidebar-header {
