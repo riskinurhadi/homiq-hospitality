@@ -132,7 +132,6 @@ $koneksi->close();
             --text-muted: #64748b;
             --border-color: #e2e8f0;
             --sidebar-width: 260px;
-            --sidebar-width-minimized: 90px;
             --sidebar-bg: #0f172a;
             --radius-md: 12px;
             --radius-lg: 16px;
@@ -154,55 +153,8 @@ $koneksi->close();
 
         #main-content {
             flex-grow: 1;
-            transition: margin-left 0.3s ease-in-out;
+            transition: margin-left 0.35s ease-in-out;
             min-width: 0; /* Mencegah konten lebar merusak layout */
-            margin-left: var(--sidebar-width);
-            transition: margin-left 0.3s ease, width 0.3s ease;
-        }
-        
-        body.sidebar-minimized #sidebarMenu {
-            width: var(--sidebar-width-minimized);
-        }
-
-        body.sidebar-minimized #main-content {
-            margin-left: var(--sidebar-width-minimized);
-        }
-
-        body.sidebar-minimized #sidebarMenu .menu-text,
-        body.sidebar-minimized #sidebarMenu .nav-link .bi-chevron-down,
-        body.sidebar-minimized #sidebarMenu .sidebar-brand span {
-            opacity: 0;
-            width: 0;
-            visibility: hidden;
-        }
-
-        body.sidebar-minimized #sidebarMenu .sidebar-header {
-            justify-content: center !important;
-        }
-        
-        body.sidebar-minimized #sidebarMenu .sidebar-header .bi {
-             margin-right: 0 !important;
-        }
-        
-        body.sidebar-minimized #sidebarMenu .nav-link {
-            justify-content: center;
-        }
-        
-        body.sidebar-minimized #sidebarMenu .nav-link i {
-            margin-right: 0;
-        }
-        
-        body.sidebar-minimized #sidebarMenu .collapse {
-            display: none !important;
-        }
-        
-        body.sidebar-minimized #sidebarMenu .sidebar-footer {
-            flex-direction: column;
-            gap: 0.5rem;
-        }
-
-        body.sidebar-minimized #sidebar-toggle i {
-            transform: rotate(180deg);
         }
 
         .mobile-toggle-btn {
@@ -214,9 +166,6 @@ $koneksi->close();
         }
 
         @media (max-width: 991.98px) {
-            #main-content {
-                margin-left: 0;
-            }
             .mobile-toggle-btn {
                 display: block;
             }
@@ -729,50 +678,20 @@ $koneksi->close();
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
     <script>
         document.addEventListener('DOMContentLoaded', function() {
-            // --- Sidebar Toggle Logic ---
-            const sidebarToggleBtn = document.getElementById('sidebar-toggle');
             const mobileSidebarToggleBtn = document.getElementById('mobile-sidebar-toggle');
-            const body = document.body;
-
-            const setupSidebar = () => {
-                const isMinimized = localStorage.getItem('sidebarMinimized') === 'true';
-                if(isMinimized) {
-                    body.classList.add('sidebar-minimized');
-                }
-            }
-
-            const toggleSidebar = () => {
-                body.classList.toggle('sidebar-minimized');
-                const isMinimized = body.classList.contains('sidebar-minimized');
-                localStorage.setItem('sidebarMinimized', isMinimized ? 'true' : 'false');
-            };
-
-            const toggleMobileSidebar = () => {
-                body.classList.toggle('sidebar-mobile-show');
-            };
-
-            if (sidebarToggleBtn) {
-                sidebarToggleBtn.addEventListener('click', (e) => {
-                    e.preventDefault();
-                    toggleSidebar();
-                });
-            }
             if (mobileSidebarToggleBtn) {
-                mobileSidebarToggleBtn.addEventListener('click', (e) => {
+                mobileSidebarToggleBtn.addEventListener('click', function(e) {
                     e.preventDefault();
-                    toggleMobileSidebar();
+                    document.body.classList.toggle('sidebar-mobile-show');
                 });
             }
             
             // Add a listener to close the sidebar when clicking on the overlay
             document.addEventListener('click', function(e) {
-                if (body.classList.contains('sidebar-mobile-show') && !e.target.closest('#sidebarMenu') && !e.target.closest('#mobile-sidebar-toggle')) {
-                    body.classList.remove('sidebar-mobile-show');
+                if (document.body.classList.contains('sidebar-mobile-show') && !e.target.closest('#sidebarMenu') && !e.target.closest('#mobile-sidebar-toggle')) {
+                    document.body.classList.remove('sidebar-mobile-show');
                 }
             });
-
-            // Apply initial state
-            setupSidebar();
         });
     </script>
 </body>
