@@ -168,15 +168,17 @@ $koneksi->close();
             margin-left: var(--sidebar-width-minimized);
         }
 
-        /* Hide text and other elements on minimized sidebar */
+        /* Minimized State Base */
+        body.sidebar-minimized #sidebarMenu {
+            overflow: visible; /* Allow tooltips to show */
+        }
+
         body.sidebar-minimized #sidebarMenu .sidebar-link span,
         body.sidebar-minimized #sidebarMenu .sidebar-item-header,
         body.sidebar-minimized #sidebarMenu .sidebar-brand span,
         body.sidebar-minimized #sidebarMenu .sidebar-link[data-bs-toggle="collapse"]::after {
             opacity: 0;
-            width: 0;
             visibility: hidden;
-            transition: all 0.1s ease;
         }
 
         body.sidebar-minimized #sidebarMenu .sidebar-header {
@@ -187,7 +189,6 @@ $koneksi->close();
              margin-right: 0 !important;
         }
         
-        /* Center icons */
         body.sidebar-minimized #sidebarMenu .sidebar-link {
             justify-content: center;
         }
@@ -199,32 +200,47 @@ $koneksi->close();
         body.sidebar-minimized #sidebarMenu .collapse {
             display: none !important;
         }
-        
-        /* Tooltip-like hover effect */
+
+        /* Floating Dropdown/Tooltip on Hover */
         body.sidebar-minimized .sidebar-item {
-            position: relative;
+            position: relative; /* Context for the absolute positioned span */
+        }
+
+        body.sidebar-minimized .sidebar-link span {
+            position: absolute;
+            left: calc(var(--sidebar-width-minimized) - 10px);
+            top: 0;
+            
+            /* Style it like a floating dropdown */
+            background-color: #1c273e;
+            padding: 0.8rem 1.2rem;
+            border-radius: 8px;
+            white-space: nowrap;
+            box-shadow: 0 8px 16px rgba(0,0,0,0.3);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+
+            /* Animation */
+            opacity: 0;
+            visibility: hidden;
+            transform: translateX(5px);
+            transition: opacity 0.2s ease, transform 0.2s ease;
         }
 
         body.sidebar-minimized .sidebar-item:hover .sidebar-link span {
-            position: absolute;
-            left: calc(var(--sidebar-width-minimized) - 10px);
-            top: 50%;
-            transform: translateY(-50%);
-            background-color: var(--dark);
-            color: #fff;
-            padding: 0.5rem 1rem;
-            border-radius: 8px;
-            white-space: nowrap;
-            box-shadow: 0 5px 10px rgba(0,0,0,0.2);
             opacity: 1;
             visibility: visible;
+            transform: translateX(0);
             z-index: 1050;
-            transition: opacity 0.2s ease 0.1s, visibility 0.2s ease 0.1s;
         }
         
         body.sidebar-minimized #sidebarMenu .sidebar-footer {
             flex-direction: column;
             gap: 0.5rem;
+            align-items: center;
+        }
+        
+        body.sidebar-minimized #sidebarMenu .sidebar-footer span {
+            display: none; /* Also hide footer text */
         }
 
         body.sidebar-minimized #sidebar-toggle i {
