@@ -1,176 +1,169 @@
 <?php
 session_start();
-include 'auth_check.php';
 include 'koneksi.php';
-
-// Pastikan hanya user dengan role 'housekeeping' atau 'admin' yang bisa mengakses
-if (!in_array($_SESSION['role'], ['housekeeping', 'admin'])) {
-    // Redirect ke halaman yang sesuai jika tidak punya akses
-    header("Location: dashboard.php");
-    exit();
-}
-
-$pageTitle = "Checklist Kebersihan Kamar";
-
-// Proses form jika ada data yang di-submit
-if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['id_kamar'])) {
-    $id_kamar = $_POST['id_kamar'];
-    $status_kamar_input = $_POST['status_kamar'];
-
-    // Menyesuaikan nilai status dengan ENUM di database
-    $status_db = '';
-    if ($status_kamar_input === 'Siap Jual') {
-        $status_db = 'Tersedia';
-    } elseif ($status_kamar_input === 'Kotor') {
-        $status_db = 'Kotor';
-    }
-
-    if (!empty($status_db)) {
-        // Update status kamar di database
-        $stmt = $koneksi->prepare("UPDATE tbl_kamar SET status = ? WHERE id_kamar = ?");
-        $stmt->bind_param("si", $status_db, $id_kamar);
-        $stmt->execute();
-        $stmt->close();
-    }
-
-    // Redirect untuk menghindari re-submit form
-    header("Location: " . $_SERVER['PHP_SELF']);
-    exit();
-}
-
-
-// Ambil daftar kamar dari database, join dengan properti untuk mendapatkan nama properti
-$query_kamar = "SELECT k.id_kamar, k.nama_kamar, k.status, p.nama_properti 
-                FROM tbl_kamar k
-                JOIN tbl_properti p ON k.id_properti = p.id_properti
-                ORDER BY p.nama_properti, k.nama_kamar ASC";
-$result_kamar = $koneksi->query($query_kamar);
-
+include 'auth_check.php';
 ?>
+
 <!DOCTYPE html>
-<html lang="id">
+<html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title><?php echo $pageTitle; ?> - HOMIQ</title>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
-    <link href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-icons/1.10.5/font/bootstrap-icons.min.css" rel="stylesheet">
+    <title>Checklist Kebersihan Kamar</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" rel="stylesheet">
     <style>
-        /* Mengikuti style mobile-first dari permintaan sebelumnya */
         body {
-            padding-bottom: 70px; /* Space for bottom navbar */
             background-color: #f8f9fa;
         }
-        .main-content {
-            margin-left: 0 !important; /* Full width for mobile-first */
+
+        .property-group {
+            margin-bottom: 2rem;
         }
-        .card {
-            border: 1px solid #dee2e6;
+
+        .property-header {
+            background: linear-gradient(45deg, #6A11CB, #2575FC);
+            color: white;
+            padding: 1rem;
             border-radius: 0.5rem;
-            margin-bottom: 1rem;
-            box-shadow: 0 2px 4px rgba(0,0,0,.05);
+            margin-bottom: 1.5rem;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
         }
-        .card-header {
-            background-color: #e9ecef;
-            font-weight: bold;
-        }
-        .form-check-label {
+
+        .room-card {
+            transition: transform 0.2s ease-in-out, box-shadow 0.2s ease-in-out;
             cursor: pointer;
+            border: none;
+            border-radius: 0.5rem;
+            overflow: hidden;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
         }
-        /* Style untuk status kamar */
-        .status-siap {
-            border-left: 5px solid #198754; /* Hijau untuk Tersedia */
+
+        .room-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 12px 20px rgba(0,0,0,0.15);
         }
-        .status-kotor {
-            border-left: 5px solid #dc3545; /* Merah untuk Kotor */
+
+        .room-card a {
+            text-decoration: none;
+            color: inherit;
+            display: block;
         }
-        .status-lain {
-            border-left: 5px solid #ffc107; /* Kuning untuk status lainnya (Maintenance, dll) */
+
+        .room-card .card-body {
+            padding: 1.5rem;
+            position: relative;
         }
+        
+        .room-card .card-title {
+            font-weight: bold;
+            font-size: 1.25rem;
+            color: #333;
+        }
+
+        .room-card .card-text {
+            color: #666;
+        }
+        
+        .status-icon {
+            position: absolute;
+            top: 1.5rem;
+            right: 1.5rem;
+            font-size: 1.5rem;
+        }
+
+        .status-Tersedia { color: #28a745; }
+        .status-Kotor { color: #dc3545; }
+        .status-Maintenance { color: #ffc107; }
+        .status-Tidak-Tersedia { color: #6c757d; }
+
     </style>
 </head>
+
 <body>
-    <div class="container-fluid">
-        <div class="row">
-            <?php include 'sidebar.php'; ?>
+    <div class="container py-5">
+        <header class="text-center mb-5">
+            <h1><i class="fas fa-tasks"></i> Checklist Kamar</h1>
+            <p class="lead text-muted">Pilih kamar untuk memulai inspeksi kebersihan dan kelayakan.</p>
+        </header>
 
-            <main class="col-md-12 ms-sm-auto col-lg-12 px-md-4 main-content">
-                <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
-                    <h1 class="h2"><?php echo $pageTitle; ?></h1>
-                </div>
+        <?php
+        if (isset($_SESSION['flash_message'])) {
+            $message = $_SESSION['flash_message'];
+            echo '<div class="alert alert-' . $message['type'] . ' alert-dismissible fade show" role="alert">';
+            echo $message['message'];
+            echo '<button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>';
+            echo '</div>';
+            unset($_SESSION['flash_message']);
+        }
+        ?>
 
-                <div class="row">
-                    <?php if ($result_kamar && $result_kamar->num_rows > 0): ?>
-                        <?php while ($kamar = $result_kamar->fetch_assoc()): 
-                            $status_class = '';
-                            if ($kamar['status'] == 'Tersedia') {
-                                $status_class = 'status-siap';
-                            } elseif ($kamar['status'] == 'Kotor') {
-                                $status_class = 'status-kotor';
-                            } else {
-                                $status_class = 'status-lain';
-                            }
-                        ?>
-                        <div class="col-lg-4 col-md-6 col-sm-12">
-                            <div class="card <?php echo $status_class; ?>">
-                                <div class="card-header d-flex justify-content-between align-items-center">
-                                    <span><?php echo htmlspecialchars($kamar['nama_properti']) . ' - ' . htmlspecialchars($kamar['nama_kamar']); ?></span>
-                                    <span class="badge bg-dark"><?php echo htmlspecialchars($kamar['status']); ?></span>
-                                </div>
-                                <div class="card-body">
-                                    <form method="POST" action="">
-                                        <input type="hidden" name="id_kamar" value="<?php echo $kamar['id_kamar']; ?>">
-                                        
-                                        <p class="fw-bold">Checklist Item:</p>
-                                        <div class="form-check mb-2">
-                                            <input class="form-check-input" type="checkbox" id="ac_<?php echo $kamar['id_kamar']; ?>">
-                                            <label class="form-check-label" for="ac_<?php echo $kamar['id_kamar']; ?>">AC Dingin</label>
-                                        </div>
-                                        <div class="form-check mb-2">
-                                            <input class="form-check-input" type="checkbox" id="km_<?php echo $kamar['id_kamar']; ?>">
-                                            <label class="form-check-label" for="km_<?php echo $kamar['id_kamar']; ?>">Kamar Mandi Bersih</label>
-                                        </div>
-                                        <div class="form-check mb-2">
-                                            <input class="form-check-input" type="checkbox" id="sprei_<?php echo $kamar['id_kamar']; ?>">
-                                            <label class="form-check-label" for="sprei_<?php echo $kamar['id_kamar']; ?>">Sprei & Bedding Bersih</label>
-                                        </div>
-                                        <div class="form-check mb-2">
-                                            <input class="form-check-input" type="checkbox" id="air_<?php echo $kamar['id_kamar']; ?>">
-                                            <label class="form-check-label" for="air_<?php echo $kamar['id_kamar']; ?>">Air Mengalir Normal</label>
-                                        </div>
-                                        <div class="form-check mb-2">
-                                            <input class="form-check-input" type="checkbox" id="lampu_<?php echo $kamar['id_kamar']; ?>">
-                                            <label class="form-check-label" for="lampu_<?php echo $kamar['id_kamar']; ?>">Semua Lampu Menyala</label>
-                                        </div>
-                                        <div class="form-check mb-2">
-                                            <input class="form-check-input" type="checkbox" id="tv_<?php echo $kamar['id_kamar']; ?>">
-                                            <label class="form-check-label" for="tv_<?php echo $kamar['id_kamar']; ?>">TV Berfungsi Normal</label>
-                                        </div>
-                                        <div class="form-check mb-3">
-                                            <input class="form-check-input" type="checkbox" id="extrabed_<?php echo $kamar['id_kamar']; ?>">
-                                            <label class="form-check-label" for="extrabed_<?php echo $kamar['id_kamar']; ?>">Extra Bed (Opsional)</label>
-                                        </div>
+        <?php
+        // Fetch properties
+        $query_properti = "SELECT * FROM tbl_properti ORDER BY nama_properti ASC";
+        $result_properti = mysqli_query($conn, $query_properti);
 
-                                        <div class="d-grid gap-2">
-                                            <button type="submit" name="status_kamar" value="Siap Jual" class="btn btn-success">Konfirmasi Siap Jual</button>
-                                            <button type="submit" name="status_kamar" value="Kotor" class="btn btn-danger">Tandai Masih Kotor</button>
-                                        </div>
-                                    </form>
-                                </div>
-                            </div>
-                        </div>
-                        <?php endwhile; ?>
-                    <?php else: ?>
-                        <div class="col-12">
-                            <div class="alert alert-info">Belum ada data kamar. Silakan tambahkan kamar di halaman Manajemen Kamar.</div>
-                        </div>
-                    <?php endif; ?>
-                </div>
+        if (mysqli_num_rows($result_properti) > 0) {
+            while ($properti = mysqli_fetch_assoc($result_properti)) {
+                echo '<div class="property-group">';
+                echo '<h2 class="property-header"><i class="fas fa-building"></i> ' . htmlspecialchars($properti['nama_properti']) . '</h2>';
 
-            </main>
-        </div>
+                // Fetch rooms for the current property
+                $id_properti = $properti['id_properti'];
+                $query_kamar = "SELECT * FROM tbl_kamar WHERE id_properti = ? ORDER BY nama_kamar ASC";
+                $stmt = $conn->prepare($query_kamar);
+                $stmt->bind_param("i", $id_properti);
+                $stmt->execute();
+                $result_kamar = $stmt->get_result();
+
+                if ($result_kamar->num_rows > 0) {
+                    echo '<div class="row g-4">';
+                    while ($kamar = $result_kamar->fetch_assoc()) {
+                        $status_class = 'status-' . str_replace(' ', '-', $kamar['status']);
+                        $icon_class = 'fas fa-question-circle'; // Default
+                        switch ($kamar['status']) {
+                            case 'Tersedia':
+                                $icon_class = 'fas fa-check-circle';
+                                break;
+                            case 'Kotor':
+                                $icon_class = 'fas fa-times-circle';
+                                break;
+                            case 'Maintenance':
+                                $icon_class = 'fas fa-tools';
+                                break;
+                            case 'Tidak Tersedia':
+                                $icon_class = 'fas fa-ban';
+                                break;
+                        }
+
+                        echo '<div class="col-lg-3 col-md-4 col-sm-6">';
+                        echo '<div class="card room-card">';
+                        // The entire card is a link
+                        echo '<a href="form_checklist.php?id_kamar=' . $kamar['id_kamar'] . '">';
+                        echo '<div class="card-body">';
+                        echo '<i class="' . $icon_class . ' ' . $status_class . ' status-icon" title="Status: ' . htmlspecialchars($kamar['status']) . '"></i>';
+                        echo '<h5 class="card-title">Kamar ' . htmlspecialchars($kamar['nama_kamar']) . '</h5>';
+                        echo '<p class="card-text mb-0">Tipe: ' . htmlspecialchars($kamar['tipe_kamar']) . '</p>';
+                        echo '</div>';
+                        echo '</a>';
+                        echo '</div>';
+                        echo '</div>';
+                    }
+                    echo '</div>'; // end .row
+                } else {
+                    echo '<p class="text-center text-muted">Tidak ada kamar yang terdaftar di properti ini.</p>';
+                }
+                $stmt->close();
+                echo '</div>'; // end .property-group
+            }
+        } else {
+            echo '<p class="text-center">Tidak ada properti yang ditemukan.</p>';
+        }
+        ?>
     </div>
 
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
 </body>
+
 </html>
