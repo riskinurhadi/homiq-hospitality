@@ -286,21 +286,27 @@ $is_manajemen_page = strpos($current_page, 'manajemen_') === 0;
         position: relative;
     }
 
-    body.sidebar-minimized .sidebar-item:hover .sidebar-link span {
+    body.sidebar-minimized .sidebar-item .sidebar-link span {
+        pointer-events: none; /* Prevent the hidden span from interfering */
+    }
+
+    body.sidebar-minimized .sidebar-item .sidebar-link:hover span {
         position: absolute;
-        left: calc(var(--sidebar-width-minimized) - 10px);
-        top: 0;
+        left: 100%;
+        top: 50%;
+        transform: translateY(-50%);
+        margin-left: 1rem; /* Space from the sidebar edge */
         background-color: #1c273e;
-        padding: 0.8rem 1.2rem;
+        padding: 0.75rem 1.25rem;
         border-radius: 8px;
         white-space: nowrap;
         box-shadow: 0 8px 16px rgba(0,0,0,0.3);
         border: 1px solid rgba(255, 255, 255, 0.1);
         opacity: 1;
         visibility: visible;
-        transform: translateX(15px);
         transition: opacity 0.2s ease, transform 0.2s ease;
         z-index: 1050;
+        pointer-events: auto; /* Make the visible tooltip interactable if needed */
     }
     
     body.sidebar-minimized .sidebar-footer {
