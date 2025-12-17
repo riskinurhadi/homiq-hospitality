@@ -168,12 +168,15 @@ $koneksi->close();
             margin-left: var(--sidebar-width-minimized);
         }
 
-        body.sidebar-minimized #sidebarMenu .menu-text,
-        body.sidebar-minimized #sidebarMenu .nav-link .bi-chevron-down,
-        body.sidebar-minimized #sidebarMenu .sidebar-brand span {
+        /* Hide text and other elements on minimized sidebar */
+        body.sidebar-minimized #sidebarMenu .sidebar-link span,
+        body.sidebar-minimized #sidebarMenu .sidebar-item-header,
+        body.sidebar-minimized #sidebarMenu .sidebar-brand span,
+        body.sidebar-minimized #sidebarMenu .sidebar-link[data-bs-toggle="collapse"]::after {
             opacity: 0;
             width: 0;
             visibility: hidden;
+            transition: all 0.1s ease;
         }
 
         body.sidebar-minimized #sidebarMenu .sidebar-header {
@@ -184,16 +187,39 @@ $koneksi->close();
              margin-right: 0 !important;
         }
         
-        body.sidebar-minimized #sidebarMenu .nav-link {
+        /* Center icons */
+        body.sidebar-minimized #sidebarMenu .sidebar-link {
             justify-content: center;
         }
         
-        body.sidebar-minimized #sidebarMenu .nav-link i {
+        body.sidebar-minimized #sidebarMenu .sidebar-link i {
             margin-right: 0;
         }
         
         body.sidebar-minimized #sidebarMenu .collapse {
             display: none !important;
+        }
+        
+        /* Tooltip-like hover effect */
+        body.sidebar-minimized .sidebar-item {
+            position: relative;
+        }
+
+        body.sidebar-minimized .sidebar-item:hover .sidebar-link span {
+            position: absolute;
+            left: calc(var(--sidebar-width-minimized) - 10px);
+            top: 50%;
+            transform: translateY(-50%);
+            background-color: var(--dark);
+            color: #fff;
+            padding: 0.5rem 1rem;
+            border-radius: 8px;
+            white-space: nowrap;
+            box-shadow: 0 5px 10px rgba(0,0,0,0.2);
+            opacity: 1;
+            visibility: visible;
+            z-index: 1050;
+            transition: opacity 0.2s ease 0.1s, visibility 0.2s ease 0.1s;
         }
         
         body.sidebar-minimized #sidebarMenu .sidebar-footer {
