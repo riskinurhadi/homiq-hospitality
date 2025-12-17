@@ -17,7 +17,7 @@ $query_kamar = "SELECT k.nama_kamar, k.tipe_kamar, k.status, p.nama_properti
                 FROM tbl_kamar k
                 JOIN tbl_properti p ON k.id_properti = p.id_properti
                 WHERE k.id_kamar = ?";
-$stmt_kamar = $conn->prepare($query_kamar);
+$stmt_kamar = $koneksi->prepare($query_kamar);
 $stmt_kamar->bind_param("i", $id_kamar);
 $stmt_kamar->execute();
 $result_kamar = $stmt_kamar->get_result();
