@@ -163,7 +163,7 @@ $koneksi->close();
         #main-content {
             flex-grow: 1;
             min-width: 0; /* Prevents wide content from breaking layout */
-            margin-left: var(--sidebar-width);
+            /* margin-left: var(--sidebar-width); */
             transition: margin-left 0.3s ease;
         }
         
