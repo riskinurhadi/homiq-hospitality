@@ -288,7 +288,7 @@ $koneksi->close();
             background: #fff;
             text-align: left;
             padding-left: 1.5rem;
-            min-width: 160px; /* MODIFIED */
+            min-width: 140px; /* MODIFIED */
             box-shadow: 2px 0 5px rgba(0,0,0,0.05);
         }
 
@@ -297,7 +297,7 @@ $koneksi->close();
             left: 0;
             z-index: 15;
             background: #fff;
-            padding: 0.5rem 1.5rem; /* MODIFIED */
+            padding: 0.25rem 1.5rem; /* MODIFIED */
             font-weight: 600;
             color: var(--dark);
             box-shadow: 2px 0 5px rgba(0,0,0,0.05);
@@ -306,7 +306,7 @@ $koneksi->close();
         .calendar-day-cell {
             padding: 0.25rem;
             vertical-align: top;
-            height: 60px; /* MODIFIED */
+            height: 50px; /* MODIFIED */
             background: #fff;
             transition: background 0.2s;
         }
