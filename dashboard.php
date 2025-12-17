@@ -288,7 +288,7 @@ $koneksi->close();
             background: #fff;
             text-align: left;
             padding-left: 1.5rem;
-            min-width: 220px;
+            min-width: 160px; /* MODIFIED */
             box-shadow: 2px 0 5px rgba(0,0,0,0.05);
         }
 
@@ -297,7 +297,7 @@ $koneksi->close();
             left: 0;
             z-index: 15;
             background: #fff;
-            padding: 1rem 1.5rem;
+            padding: 0.5rem 1.5rem; /* MODIFIED */
             font-weight: 600;
             color: var(--dark);
             box-shadow: 2px 0 5px rgba(0,0,0,0.05);
@@ -306,7 +306,7 @@ $koneksi->close();
         .calendar-day-cell {
             padding: 0.25rem;
             vertical-align: top;
-            height: 100px;
+            height: 60px; /* MODIFIED */
             background: #fff;
             transition: background 0.2s;
         }
@@ -711,6 +711,20 @@ $koneksi->close();
                 }
             });
 
+            // Auto-scroll to today's date in calendar
+            const calendarScroll = document.querySelector('.calendar-scroll');
+            const todayCell = document.querySelector('.calendar-table th.text-primary'); // More specific selector for today's header
+            if (calendarScroll && todayCell) {
+                const scrollContainerWidth = calendarScroll.offsetWidth;
+                const todayCellOffsetLeft = todayCell.offsetLeft;
+                const todayCellWidth = todayCell.offsetWidth;
+                const roomColWidth = document.querySelector('.calendar-table th.room-col').offsetWidth;
+
+                // Calculate position to center today's cell
+                const scrollLeftPosition = todayCellOffsetLeft - (scrollContainerWidth / 2) + (todayCellWidth / 2) - roomColWidth;
+
+                calendarScroll.scrollLeft = scrollLeftPosition;
+            }
         });
     </script>
 </body>
