@@ -132,7 +132,6 @@ $koneksi->close();
             --text-muted: #64748b;
             --border-color: #e2e8f0;
             --sidebar-width: 260px;
-            --sidebar-width-minimized: 90px;
             --sidebar-bg: #0f172a;
             --radius-md: 12px;
             --radius-lg: 16px;
@@ -147,6 +146,51 @@ $koneksi->close();
             color: var(--text-main);
             display: flex;
             min-height: 100vh;
+        }
+
+        #main-content {
+            width: 100%;
+            margin-left: var(--sidebar-width);
+        }
+
+        .mobile-toggle-btn {
+            display: none;
+            font-size: 1.5rem;
+            color: var(--text-main);
+            background: none;
+            border: none;
+        }
+
+        /* Responsive */
+        @media (max-width: 991.98px) {
+            #main-content {
+                margin-left: 0;
+            }
+
+            #sidebarMenu {
+                transform: translateX(-100%);
+                transition: transform 0.3s ease-in-out;
+                z-index: 1045; /* Higher than main content */
+            }
+
+            body.sidebar-mobile-show #sidebarMenu {
+                transform: translateX(0);
+            }
+            
+            body.sidebar-mobile-show::before {
+                content: '';
+                position: fixed;
+                top: 0;
+                left: 0;
+                width: 100%;
+                height: 100%;
+                background: rgba(0,0,0,0.5);
+                z-index: 1040;
+            }
+
+            .mobile-toggle-btn {
+                display: block;
+            }
         }
 
         /* CARDS */
@@ -652,31 +696,5 @@ $koneksi->close();
     </main>
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
-    <script>
-        document.addEventListener('DOMContentLoaded', function() {
-            // --- Calendar Auto-Scroll Logic ---
-            const todayCell = document.querySelector('th.text-primary'); // More specific selector for the header
-            if (todayCell) {
-                const calendarScroll = document.querySelector('.calendar-scroll');
-                const roomCol = document.querySelector('.calendar-table th.room-col');
-                const roomColWidth = roomCol ? roomCol.offsetWidth : 0;
-                
-                // Calculate the position to scroll to
-                const cellLeft = todayCell.offsetLeft;
-                const cellWidth = todayCell.offsetWidth;
-                const containerWidth = calendarScroll.clientWidth;
-                
-                // Position the today cell in the middle of the remaining viewport
-                let scrollPosition = cellLeft - roomColWidth - (containerWidth / 2) + (cellWidth / 2);
-
-                // Ensure we don't scroll past the beginning
-                if (scrollPosition < 0) {
-                    scrollPosition = 0;
-                }
-                
-                calendarScroll.scrollLeft = scrollPosition;
-            }
-        });
-    </script>
 </body>
 </html>
