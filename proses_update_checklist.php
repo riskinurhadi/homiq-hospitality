@@ -29,24 +29,24 @@ if (empty($id_kamar) || empty($id_user) || empty($status_kamar) || empty($checkl
 }
 
 // Mulai transaksi
-mysqli_begin_transaction($conn);
+mysqli_begin_transaction($koneksi);
 
 try {
     // 1. Insert ke tbl_checklist_runs
     $query_run = "INSERT INTO tbl_checklist_runs (id_kamar, id_user, final_status_kamar, catatan_umum) VALUES (?, ?, ?, ?)";
-    $stmt_run = mysqli_prepare($conn, $query_run);
+    $stmt_run = mysqli_prepare($koneksi, $query_run);
     mysqli_stmt_bind_param($stmt_run, 'iiss', $id_kamar, $id_user, $status_kamar, $catatan_umum);
     
     if (!mysqli_stmt_execute($stmt_run)) {
         throw new Exception("Gagal menyimpan data checklist utama: " . mysqli_stmt_error($stmt_run));
     }
     
-    $id_run = mysqli_insert_id($conn);
+    $id_run = mysqli_insert_id($koneksi);
     mysqli_stmt_close($stmt_run);
 
     // 2. Insert setiap item ke tbl_checklist_run_items
     $query_item = "INSERT INTO tbl_checklist_run_items (id_run, item_key, item_status, catatan_item) VALUES (?, ?, ?, ?)";
-    $stmt_item = mysqli_prepare($conn, $query_item);
+    $stmt_item = mysqli_prepare($koneksi, $query_item);
 
     foreach ($checklist_statuses as $key => $status) {
         $catatan = isset($checklist_catatan[$key]) ? $checklist_catatan[$key] : '';
@@ -60,7 +60,7 @@ try {
     
     // 3. Update status di tbl_kamar
     $query_update_kamar = "UPDATE tbl_kamar SET status = ? WHERE id_kamar = ?";
-    $stmt_update_kamar = mysqli_prepare($conn, $query_update_kamar);
+    $stmt_update_kamar = mysqli_prepare($koneksi, $query_update_kamar);
     mysqli_stmt_bind_param($stmt_update_kamar, 'si', $status_kamar, $id_kamar);
 
     if (!mysqli_stmt_execute($stmt_update_kamar)) {
@@ -69,7 +69,7 @@ try {
     mysqli_stmt_close($stmt_update_kamar);
 
     // Jika semua berhasil, commit transaksi
-    mysqli_commit($conn);
+    mysqli_commit($koneksi);
 
     $_SESSION['flash_message'] = [
         'type' => 'success',
@@ -78,7 +78,7 @@ try {
 
 } catch (Exception $e) {
     // Jika ada error, rollback transaksi
-    mysqli_rollback($conn);
+    mysqli_rollback($koneksi);
 
     $_SESSION['flash_message'] = [
         'type' => 'danger',
