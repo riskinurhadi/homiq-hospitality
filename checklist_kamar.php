@@ -15,68 +15,88 @@ include 'auth_check.php';
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" rel="stylesheet">
     <style>
         body {
-            background-color: #f8f9fa;
+            background-color: #f4f7f6;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        .container {
+            max-width: 1200px;
+        }
+
+        .header-icon {
+            font-size: 2.5rem;
+            color: #005A9C;
+        }
+        
+        h1 {
+            color: #333;
+            font-weight: 600;
         }
 
         .property-group {
-            margin-bottom: 2rem;
+            margin-bottom: 2.5rem;
         }
 
         .property-header {
-            background: linear-gradient(45deg, #6A11CB, #2575FC);
-            color: white;
-            padding: 1rem;
-            border-radius: 0.5rem;
+            border-left: 5px solid #005A9C;
+            background-color: #ffffff;
+            color: #333;
+            padding: 0.8rem 1.5rem;
             margin-bottom: 1.5rem;
-            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+            border-radius: 0.25rem;
+            font-size: 1.5rem;
+            font-weight: 600;
         }
 
         .room-card {
+            background-color: #ffffff;
+            border: 1px solid #e9ecef;
+            border-radius: 0.35rem;
             transition: transform 0.2s ease-in-out, box-shadow 0.2s ease-in-out;
             cursor: pointer;
-            border: none;
-            border-radius: 0.5rem;
             overflow: hidden;
-            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+            box-shadow: 0 1px 3px rgba(0,0,0,0.04);
+            position: relative;
         }
-
+        
         .room-card:hover {
-            transform: translateY(-5px);
-            box-shadow: 0 12px 20px rgba(0,0,0,0.15);
+            transform: translateY(-4px);
+            box-shadow: 0 8px 15px rgba(0, 90, 156, 0.1);
         }
 
         .room-card a {
             text-decoration: none;
             color: inherit;
             display: block;
-        }
-
-        .room-card .card-body {
-            padding: 1.5rem;
-            position: relative;
+            padding: 1.25rem;
         }
         
         .room-card .card-title {
-            font-weight: bold;
-            font-size: 1.25rem;
-            color: #333;
+            font-weight: 600;
+            font-size: 1.15rem;
+            color: #005A9C;
+            margin-bottom: 0.25rem;
         }
 
-        .room-card .card-text {
-            color: #666;
-        }
-        
-        .status-icon {
-            position: absolute;
-            top: 1.5rem;
-            right: 1.5rem;
-            font-size: 1.5rem;
+        .room-card .card-subtitle {
+            font-size: 0.9rem;
+            color: #6c757d;
+            margin-bottom: 0.75rem;
         }
 
-        .status-Tersedia { color: #28a745; }
-        .status-Kotor { color: #dc3545; }
-        .status-Maintenance { color: #ffc107; }
-        .status-Tidak-Tersedia { color: #6c757d; }
+        .status-badge {
+            font-size: 0.8rem;
+            font-weight: 500;
+            padding: 0.3em 0.6em;
+            border-radius: 0.25rem;
+            color: #fff;
+        }
+
+        .status-Tersedia { background-color: #28a745; }
+        .status-Kotor { background-color: #dc3545; }
+        .status-Maintenance { background-color: #ffc107; color: #333 !important; }
+        .status-Tidak-Tersedia { background-color: #6c757d; }
 
     </style>
 </head>
@@ -84,7 +104,8 @@ include 'auth_check.php';
 <body>
     <div class="container py-5">
         <header class="text-center mb-5">
-            <h1><i class="fas fa-tasks"></i> Checklist Kamar</h1>
+            <i class="fas fa-tasks header-icon"></i>
+            <h1>Checklist Kamar</h1>
             <p class="lead text-muted">Pilih kamar untuk memulai inspeksi kebersihan dan kelayakan.</p>
         </header>
 
@@ -107,7 +128,7 @@ include 'auth_check.php';
         if (mysqli_num_rows($result_properti) > 0) {
             while ($properti = mysqli_fetch_assoc($result_properti)) {
                 echo '<div class="property-group">';
-                echo '<h2 class="property-header"><i class="fas fa-building"></i> ' . htmlspecialchars($properti['nama_properti']) . '</h2>';
+                echo '<h2 class="property-header"><i class="fas fa-building me-2"></i>' . htmlspecialchars($properti['nama_properti']) . '</h2>';
 
                 // Fetch rooms for the current property
                 $id_properti = $properti['id_properti'];
@@ -121,31 +142,13 @@ include 'auth_check.php';
                     echo '<div class="row g-4">';
                     while ($kamar = $result_kamar->fetch_assoc()) {
                         $status_class = 'status-' . str_replace(' ', '-', $kamar['status']);
-                        $icon_class = 'fas fa-question-circle'; // Default
-                        switch ($kamar['status']) {
-                            case 'Tersedia':
-                                $icon_class = 'fas fa-check-circle';
-                                break;
-                            case 'Kotor':
-                                $icon_class = 'fas fa-times-circle';
-                                break;
-                            case 'Maintenance':
-                                $icon_class = 'fas fa-tools';
-                                break;
-                            case 'Tidak Tersedia':
-                                $icon_class = 'fas fa-ban';
-                                break;
-                        }
-
+                        
                         echo '<div class="col-lg-3 col-md-4 col-sm-6">';
                         echo '<div class="card room-card">';
-                        // The entire card is a link
                         echo '<a href="form_checklist.php?id_kamar=' . $kamar['id_kamar'] . '">';
-                        echo '<div class="card-body">';
-                        echo '<i class="' . $icon_class . ' ' . $status_class . ' status-icon" title="Status: ' . htmlspecialchars($kamar['status']) . '"></i>';
                         echo '<h5 class="card-title">Kamar ' . htmlspecialchars($kamar['nama_kamar']) . '</h5>';
-                        echo '<p class="card-text mb-0">Tipe: ' . htmlspecialchars($kamar['tipe_kamar']) . '</p>';
-                        echo '</div>';
+                        echo '<h6 class="card-subtitle">Tipe: ' . htmlspecialchars($kamar['tipe_kamar']) . '</h6>';
+                        echo '<span class="status-badge ' . $status_class . '">' . htmlspecialchars($kamar['status']) . '</span>';
                         echo '</a>';
                         echo '</div>';
                         echo '</div>';
