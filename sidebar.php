@@ -1,8 +1,100 @@
 <?php
-// sidebar.php (v2.0 - Modern, Fixed-Width)
+// sidebar.php
 $current_page = basename($_SERVER['PHP_SELF']);
 $is_manajemen_page = strpos($current_page, 'manajemen_') === 0;
+
+// Default role if not set, for safety
+$role_user = isset($role_user) ? $role_user : 'front_office';
+
+if ($role_user == 'housekeeping') :
 ?>
+
+<nav class="bottom-nav">
+    <a href="dashboard.php" class="bottom-nav-item <?php echo ($current_page == 'dashboard.php') ? 'active' : ''; ?>">
+        <i class="bi bi-grid"></i>
+        <span class="bottom-nav-label">Home</span>
+    </a>
+    <a href="manajemen_kamar.php" class="bottom-nav-item <?php echo ($current_page == 'manajemen_kamar.php') ? 'active' : ''; ?>">
+        <i class="bi bi-door-open"></i>
+        <span class="bottom-nav-label">Kamar</span>
+    </a>
+    <a href="#" class="bottom-nav-item">
+        <i class="bi bi-bell"></i>
+        <span class="bottom-nav-label">Notifikasi</span>
+    </a>
+    <a href="#" class="bottom-nav-item">
+        <i class="bi bi-person"></i>
+        <span class="bottom-nav-label">Profil</span>
+    </a>
+</nav>
+
+<style>
+    :root {
+        --primary: #4361ee;
+        --bottom-nav-bg: #ffffff;
+        --bottom-nav-color: #6c757d;
+        --bottom-nav-color-active: var(--primary);
+        --bottom-nav-height: 60px;
+        --body-padding-bottom: var(--bottom-nav-height); /* Add padding to body */
+    }
+
+    body {
+        padding-bottom: var(--body-padding-bottom); /* Ensure content isn't hidden by nav */
+    }
+
+    .bottom-nav {
+        position: fixed;
+        bottom: 0;
+        left: 0;
+        right: 0;
+        height: var(--bottom-nav-height);
+        background-color: var(--bottom-nav-bg);
+        display: flex;
+        justify-content: space-around;
+        align-items: center;
+        box-shadow: 0 -2px 10px rgba(0, 0, 0, 0.1);
+        z-index: 1000;
+    }
+
+    .bottom-nav-item {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        text-decoration: none;
+        color: var(--bottom-nav-color);
+        flex-grow: 1;
+        text-align: center;
+        transition: color 0.2s ease;
+    }
+
+    .bottom-nav-item i {
+        font-size: 1.5rem;
+        margin-bottom: 2px;
+    }
+
+    .bottom-nav-label {
+        font-size: 0.75rem;
+    }
+
+    .bottom-nav-item.active {
+        color: var(--bottom-nav-color-active);
+        font-weight: 600;
+    }
+
+    /* Hide standard sidebar for housekeeping role */
+    .sidebar {
+        display: none;
+    }
+    
+    /* Adjust main content for housekeeping role */
+    .main-content {
+        margin-left: 0 !important;
+    }
+</style>
+
+<?php else : ?>
+
 <nav class="sidebar" id="sidebarMenu">
     <div class="sidebar-header">
         <a href="dashboard.php" class="sidebar-brand">
@@ -262,6 +354,7 @@ $is_manajemen_page = strpos($current_page, 'manajemen_') === 0;
             background: rgba(0,0,0,0.5);
             z-index: 1040;
         }
-        
     }
 </style>
+
+<?php endif; ?>
