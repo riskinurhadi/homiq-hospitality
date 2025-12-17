@@ -123,7 +123,7 @@ include 'auth_check.php';
         <?php
         // Fetch properties
         $query_properti = "SELECT * FROM tbl_properti ORDER BY nama_properti ASC";
-        $result_properti = mysqli_query($conn, $query_properti);
+        $result_properti = mysqli_query($koneksi, $query_properti);
 
         if (mysqli_num_rows($result_properti) > 0) {
             while ($properti = mysqli_fetch_assoc($result_properti)) {
@@ -133,7 +133,7 @@ include 'auth_check.php';
                 // Fetch rooms for the current property
                 $id_properti = $properti['id_properti'];
                 $query_kamar = "SELECT * FROM tbl_kamar WHERE id_properti = ? ORDER BY nama_kamar ASC";
-                $stmt = $conn->prepare($query_kamar);
+                $stmt = $koneksi->prepare($query_kamar);
                 $stmt->bind_param("i", $id_properti);
                 $stmt->execute();
                 $result_kamar = $stmt->get_result();
