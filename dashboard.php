@@ -131,9 +131,12 @@ $koneksi->close();
             --text-main: #334155;
             --text-muted: #64748b;
             --border-color: #e2e8f0;
+            
+            /* Variables for sidebar width are now in sidebar.php, 
+               but we still need them for main-content margin */
             --sidebar-width: 260px;
             --sidebar-width-minimized: 90px;
-            --sidebar-bg: #0f172a;
+
             --radius-md: 12px;
             --radius-lg: 16px;
             --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.05);
@@ -148,101 +151,22 @@ $koneksi->close();
             min-height: 100vh;
         }
 
+        /* --- Main Layout --- */
         .wrapper {
             display: flex;
         }
 
         #main-content {
             flex-grow: 1;
-            transition: margin-left 0.3s ease-in-out;
-            min-width: 0; /* Mencegah konten lebar merusak layout */
+            min-width: 0; /* Prevents wide content from breaking layout */
             margin-left: var(--sidebar-width);
-            transition: margin-left 0.3s ease, width 0.3s ease;
+            transition: margin-left 0.3s ease;
         }
         
-        body.sidebar-minimized #sidebarMenu {
-            width: var(--sidebar-width-minimized);
-        }
-
         body.sidebar-minimized #main-content {
             margin-left: var(--sidebar-width-minimized);
         }
-
-        /* Minimized State Base */
-        body.sidebar-minimized #sidebarMenu {
-            overflow: visible; /* Allow tooltips to show */
-        }
-
-        body.sidebar-minimized #sidebarMenu .sidebar-link span,
-        body.sidebar-minimized #sidebarMenu .sidebar-item-header,
-        body.sidebar-minimized #sidebarMenu .sidebar-brand span,
-        body.sidebar-minimized #sidebarMenu .sidebar-link[data-bs-toggle="collapse"]::after {
-            opacity: 0;
-            visibility: hidden;
-        }
-
-        body.sidebar-minimized #sidebarMenu .sidebar-header {
-            justify-content: center !important;
-        }
         
-        body.sidebar-minimized #sidebarMenu .sidebar-header .bi {
-             margin-right: 0 !important;
-        }
-        
-        body.sidebar-minimized #sidebarMenu .sidebar-link {
-            justify-content: center;
-        }
-        
-        body.sidebar-minimized #sidebarMenu .sidebar-link i {
-            margin-right: 0;
-        }
-        
-        body.sidebar-minimized #sidebarMenu .collapse {
-            display: none !important;
-        }
-
-        /* Floating Dropdown/Tooltip on Hover */
-        body.sidebar-minimized .sidebar-item {
-            position: relative; /* Context for the absolute positioned span */
-        }
-
-        body.sidebar-minimized .sidebar-link span {
-            position: absolute;
-            left: calc(var(--sidebar-width-minimized) - 10px);
-            top: 0;
-            
-            /* Style it like a floating dropdown */
-            background-color: #1c273e;
-            padding: 0.8rem 1.2rem;
-            border-radius: 8px;
-            white-space: nowrap;
-            box-shadow: 0 8px 16px rgba(0,0,0,0.3);
-            border: 1px solid rgba(255, 255, 255, 0.1);
-
-            /* Animation */
-            opacity: 0;
-            visibility: hidden;
-            transform: translateX(5px);
-            transition: opacity 0.2s ease, transform 0.2s ease;
-        }
-
-        body.sidebar-minimized .sidebar-item:hover .sidebar-link span {
-            opacity: 1;
-            visibility: visible;
-            transform: translateX(0);
-            z-index: 1050;
-        }
-        
-        body.sidebar-minimized #sidebarMenu .sidebar-footer {
-            flex-direction: column;
-            gap: 0.5rem;
-            align-items: center;
-        }
-        
-        body.sidebar-minimized #sidebarMenu .sidebar-footer span {
-            display: none; /* Also hide footer text */
-        }
-
         body.sidebar-minimized #sidebar-toggle i {
             transform: rotate(180deg);
         }
@@ -263,6 +187,8 @@ $koneksi->close();
                 display: block;
             }
         }
+
+        /* --- Page Specific Styles --- */
 
         /* CARDS */
         .card-modern {

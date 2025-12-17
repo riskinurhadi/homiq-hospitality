@@ -88,6 +88,7 @@ $is_manajemen_page = strpos($current_page, 'manajemen_') === 0;
         --primary: #4361ee;
         --sidebar-bg: #0f172a;
         --sidebar-width: 260px;
+        --sidebar-width-minimized: 90px; /* Added from dashboard */
         --text-main: #334155;
         --text-muted: #64748b;
     }
@@ -104,12 +105,14 @@ $is_manajemen_page = strpos($current_page, 'manajemen_') === 0;
         flex-direction: column;
         z-index: 1030;
         border-right: 1px solid rgba(255, 255, 255, 0.05);
-        transition: margin-left 0.35s ease-in-out;
+        transition: width 0.3s ease, margin-left 0.35s ease-in-out;
     }
 
     .sidebar-header {
         padding: 1.25rem;
         border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+        display: flex; /* Added for alignment */
+        align-items: center; /* Added for alignment */
     }
 
     .sidebar-brand {
@@ -119,11 +122,14 @@ $is_manajemen_page = strpos($current_page, 'manajemen_') === 0;
         color: #fff;
         font-size: 1.5rem;
         font-weight: 700;
+        overflow: hidden; /* Prevent text wrap */
+        white-space: nowrap; /* Prevent text wrap */
     }
     .sidebar-brand i {
         font-size: 1.5rem;
         margin-right: 0.75rem;
         color: var(--primary);
+        flex-shrink: 0; /* Prevent icon from shrinking */
     }
 
     .sidebar-body {
@@ -131,7 +137,6 @@ $is_manajemen_page = strpos($current_page, 'manajemen_') === 0;
         overflow-y: auto;
         padding: 1rem 0;
     }
-    /* Simple scrollbar styling */
     .sidebar-body::-webkit-scrollbar {
         width: 6px;
     }
@@ -152,6 +157,7 @@ $is_manajemen_page = strpos($current_page, 'manajemen_') === 0;
         color: var(--text-muted);
         text-transform: uppercase;
         letter-spacing: 0.5px;
+        white-space: nowrap;
     }
 
     .sidebar-item {
@@ -183,6 +189,8 @@ $is_manajemen_page = strpos($current_page, 'manajemen_') === 0;
         margin-right: 1rem;
         font-size: 1.1rem;
         width: 20px;
+        flex-shrink: 0; /* Prevent icon from shrinking */
+        transition: margin-right 0.3s ease;
     }
 
     /* Submenu */
@@ -190,7 +198,7 @@ $is_manajemen_page = strpos($current_page, 'manajemen_') === 0;
         content: '\F282'; /* Bootstrap Icons chevron-down */
         font-family: 'bootstrap-icons';
         margin-left: auto;
-        transition: transform 0.2s ease-in-out;
+        transition: transform 0.2s ease-in-out, opacity 0.2s ease;
     }
     .sidebar-link[data-bs-toggle="collapse"].collapsed::after {
         transform: rotate(-90deg);
@@ -222,15 +230,87 @@ $is_manajemen_page = strpos($current_page, 'manajemen_') === 0;
     .sidebar-footer {
         padding: 1rem;
         border-top: 1px solid rgba(255, 255, 255, 0.05);
+        display: flex; /* Added for alignment */
+        transition: all 0.3s ease;
     }
     .sidebar-footer .logout-link {
         justify-content: center;
         background-color: rgba(239, 71, 111, 0.1);
         color: #f78da7;
+        width: 100%;
     }
     .sidebar-footer .logout-link:hover {
         background-color: rgba(239, 71, 111, 0.2);
         color: #fff;
+    }
+
+    /* --- Styles moved from dashboard.php --- */
+
+    /* Minimized State Base */
+    body.sidebar-minimized .sidebar {
+        width: var(--sidebar-width-minimized);
+        overflow: visible; /* Allow tooltips to show */
+    }
+
+    body.sidebar-minimized .sidebar-link span,
+    body.sidebar-minimized .sidebar-item-header,
+    body.sidebar-minimized .sidebar-brand span,
+    body.sidebar-minimized .sidebar-link[data-bs-toggle="collapse"]::after {
+        opacity: 0;
+        visibility: hidden;
+        transition: opacity 0.1s ease;
+    }
+    
+    body.sidebar-minimized .sidebar-header {
+        justify-content: center;
+    }
+    
+    body.sidebar-minimized .sidebar-brand i {
+         margin-right: 0;
+    }
+    
+    body.sidebar-minimized .sidebar-link {
+        justify-content: center;
+    }
+    
+    body.sidebar-minimized .sidebar-link i {
+        margin-right: 0;
+    }
+    
+    body.sidebar-minimized .collapse {
+        display: none !important;
+    }
+
+    /* Floating Tooltip on Hover for minimized */
+    body.sidebar-minimized .sidebar-item {
+        position: relative;
+    }
+
+    body.sidebar-minimized .sidebar-item:hover .sidebar-link span {
+        position: absolute;
+        left: calc(var(--sidebar-width-minimized) - 10px);
+        top: 0;
+        background-color: #1c273e;
+        padding: 0.8rem 1.2rem;
+        border-radius: 8px;
+        white-space: nowrap;
+        box-shadow: 0 8px 16px rgba(0,0,0,0.3);
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        opacity: 1;
+        visibility: visible;
+        transform: translateX(15px);
+        transition: opacity 0.2s ease, transform 0.2s ease;
+        z-index: 1050;
+    }
+    
+    body.sidebar-minimized .sidebar-footer {
+        flex-direction: column;
+        gap: 0.5rem;
+        align-items: center;
+    }
+    
+    body.sidebar-minimized .sidebar-footer span {
+        display: none;
     }
 
     /* Responsive: Mobile view */
@@ -251,6 +331,30 @@ $is_manajemen_page = strpos($current_page, 'manajemen_') === 0;
             height: 100%;
             background: rgba(0,0,0,0.5);
             z-index: 1040;
+        }
+        
+        /* On mobile, minimized state has no effect */
+        body.sidebar-minimized .sidebar {
+            width: var(--sidebar-width);
+        }
+        body.sidebar-minimized .sidebar-link span,
+        body.sidebar-minimized .sidebar-item-header,
+        body.sidebar-minimized .sidebar-brand span,
+        body.sidebar-minimized .sidebar-link[data-bs-toggle="collapse"]::after {
+             opacity: 1;
+             visibility: visible;
+        }
+         body.sidebar-minimized .sidebar-header {
+            justify-content: flex-start;
+        }
+         body.sidebar-minimized .sidebar-brand i {
+            margin-right: 0.75rem;
+        }
+        body.sidebar-minimized .sidebar-link {
+            justify-content: flex-start;
+        }
+        body.sidebar-minimized .sidebar-link i {
+            margin-right: 1rem;
         }
     }
 </style>
