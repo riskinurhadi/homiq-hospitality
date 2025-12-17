@@ -14,7 +14,7 @@ CREATE TABLE `tbl_checklist_runs` (
   `run_timestamp` timestamp NOT NULL DEFAULT current_timestamp(),
   `final_status_kamar` enum('Tersedia','Kotor','Maintenance') NOT NULL,
   `catatan_umum` text DEFAULT NULL
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb3 COLLATE=utf8mb3_general_ci;
 
 --
 -- Tabel untuk menyimpan detail item dari setiap proses checklist
@@ -25,7 +25,7 @@ CREATE TABLE `tbl_checklist_run_items` (
   `item_key` varchar(50) NOT NULL COMMENT 'e.g., ac, tv, sprei',
   `item_status` enum('Baik','Perbaikan') NOT NULL,
   `catatan_item` varchar(255) DEFAULT NULL
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb3 COLLATE=utf8mb3_general_ci;
 
 --
 -- Indexes for table `tbl_checklist_runs`
