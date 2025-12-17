@@ -3,6 +3,9 @@ session_start();
 include 'koneksi.php';
 include 'auth_check.php';
 
+// Ambil nama user untuk header (fallback jika belum diset)
+$nama_lengkap = $_SESSION['nama_lengkap'] ?? 'User';
+
 // Cek apakah id_kamar ada di URL
 if (!isset($_GET['id_kamar']) || empty($_GET['id_kamar'])) {
     header("Location: checklist_kamar.php");
@@ -41,116 +44,190 @@ $checklist_items = [
 
 ?>
 <!DOCTYPE html>
-<html lang="en">
+<html lang="id">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Form Checklist Kamar <?php echo htmlspecialchars($kamar['nama_kamar']); ?></title>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <title>Checklist Kamar <?php echo htmlspecialchars($kamar['nama_kamar']); ?> - Homiq</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    
     <style>
+        html { font-size: 85%; }
+        :root {
+            --primary: #4361ee;
+            --primary-soft: #eef2ff;
+            --secondary: #3f37c9;
+            --success: #06d6a0;
+            --warning: #ffd166;
+            --danger: #ef476f;
+            --dark: #1e293b;
+            --light: #f8f9fa;
+            --body-bg: #f1f5f9;
+            --card-bg: #ffffff;
+            --text-main: #334155;
+            --text-muted: #64748b;
+            --border-color: #e2e8f0;
+            --radius-md: 12px;
+            --radius-lg: 16px;
+            --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.05);
+            --shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
+        }
         body {
-            background-color: #f4f7f6;
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            background-color: var(--body-bg);
+            color: var(--text-main);
+            min-height: 100vh;
         }
-        .card-header {
-            background: linear-gradient(45deg, #6A11CB, #2575FC);
-            color: white;
+        .wrapper { display: flex; }
+        #main-content { flex-grow: 1; min-width: 0; transition: margin-left 0.3s ease; }
+        
+        /* Mobile toggle */
+        .mobile-toggle-btn { display: none; font-size: 1.5rem; color: var(--text-main); background: none; border: none; }
+        @media (max-width: 991.98px) {
+            #main-content { margin-left: 0; }
+            .mobile-toggle-btn { display: block; }
         }
-        .form-check-input:checked {
-            background-color: #2575FC;
-            border-color: #2575FC;
+
+        /* Card Styles */
+        .card-modern {
+            background: var(--card-bg);
+            border: none;
+            border-radius: var(--radius-lg);
+            box-shadow: var(--shadow-sm);
         }
-        .btn-submit {
-            background-color: #2575FC;
-            border-color: #2575FC;
-            color: white;
-            transition: background-color 0.3s;
-        }
-        .btn-submit:hover {
-            background-color: #6A11CB;
-            border-color: #6A11CB;
-        }
+        
         .checklist-item {
-            padding: 1rem;
-            border: 1px solid #dee2e6;
-            border-radius: .375rem;
+            padding: 1.25rem;
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius-md);
             margin-bottom: 1rem;
             background-color: #fff;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+            transition: border-color 0.2s;
+        }
+        .checklist-item:hover {
+            border-color: var(--primary);
+        }
+        
+        .form-check-input:checked {
+            background-color: var(--primary);
+            border-color: var(--primary);
+        }
+        
+        .section-title {
+            font-size: 1rem;
+            font-weight: 700;
+            color: var(--dark);
+            margin-bottom: 1rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
         }
     </style>
 </head>
-<body>
+<body class="<?php if (isset($_SESSION['role']) && $_SESSION['role'] === 'Housekeeping') { echo 'has-bottom-nav'; } ?>">
+    <div class="wrapper">
+        <?php include 'sidebar.php'; ?>
 
-<div class="container py-5">
-    <div class="row justify-content-center">
-        <div class="col-lg-8">
-            <div class="card shadow-lg">
-                <div class="card-header text-center p-4">
-                    <h2 class="mb-0"><i class="fas fa-clipboard-check"></i> Checklist Kamar <?php echo htmlspecialchars($kamar['nama_kamar']); ?></h2>
-                    <h5 class="mb-0 fw-normal"><?php echo htmlspecialchars($kamar['nama_properti']); ?></h5>
+        <main id="main-content" class="p-3 p-md-4">
+            <!-- Header -->
+            <header class="d-flex justify-content-between align-items-center mb-4">
+                <div class="d-flex align-items-center">
+                    <button class="mobile-toggle-btn me-3 d-lg-none" id="mobile-sidebar-toggle">
+                        <i class="bi bi-list"></i>
+                    </button>
+                    <div>
+                        <div class="d-flex align-items-center gap-2">
+                            <a href="checklist_kamar.php" class="text-decoration-none text-muted"><i class="bi bi-arrow-left"></i></a>
+                            <h4 class="fw-bold mb-0 text-dark">Form Checklist</h4>
+                        </div>
+                        <p class="text-muted mb-0 ms-4 ps-1" style="font-size: 0.9rem;">
+                            <?php echo htmlspecialchars($kamar['nama_properti']); ?> &bull; Kamar <?php echo htmlspecialchars($kamar['nama_kamar']); ?>
+                        </p>
+                    </div>
                 </div>
-                <div class="card-body p-4 p-md-5">
+            </header>
+
+            <div class="row justify-content-center">
+                <div class="col-lg-8">
                     <form action="proses_update_checklist.php" method="POST">
                         <input type="hidden" name="id_kamar" value="<?php echo $id_kamar; ?>">
                         <input type="hidden" name="id_user" value="<?php echo $id_user; ?>">
 
-                        <div class="mb-4">
-                            <h4><i class="fas fa-list-ul"></i> Daftar Pengecekan</h4>
-                            <p class="text-muted">Pastikan semua item dalam kondisi 'Baik' sebelum mengubah status kamar menjadi 'Tersedia'.</p>
-                        </div>
-
-                        <?php foreach ($checklist_items as $key => $label): ?>
-                        <div class="checklist-item">
-                            <div class="row align-items-center">
-                                <div class="col-sm-6">
-                                    <label class="form-label fw-bold"><?php echo $label; ?></label>
-                                </div>
-                                <div class="col-sm-6 text-sm-end">
-                                    <div class="form-check form-check-inline">
-                                        <input class="form-check-input" type="radio" name="status[<?php echo $key; ?>]" id="<?php echo $key; ?>_baik" value="Baik" required>
-                                        <label class="form-check-label" for="<?php echo $key; ?>_baik"><i class="fas fa-check-circle text-success"></i> Baik</label>
-                                    </div>
-                                    <div class="form-check form-check-inline">
-                                        <input class="form-check-input" type="radio" name="status[<?php echo $key; ?>]" id="<?php echo $key; ?>_perbaikan" value="Perbaikan">
-                                        <label class="form-check-label" for="<?php echo $key; ?>_perbaikan"><i class="fas fa-times-circle text-danger"></i> Perbaikan</label>
-                                    </div>
-                                </div>
+                        <div class="card-modern p-4 mb-4">
+                            <div class="section-title text-primary">
+                                <i class="bi bi-list-check"></i> Daftar Pengecekan
                             </div>
-                             <div class="mt-2">
-                                <input type="text" class="form-control form-control-sm" name="catatan[<?php echo $key; ?>]" placeholder="Catatan (opsional)...">
+                            <p class="text-muted small mb-4">Pastikan semua item dalam kondisi 'Baik' sebelum mengubah status kamar menjadi 'Tersedia'.</p>
+
+                            <?php foreach ($checklist_items as $key => $label): ?>
+                            <div class="checklist-item">
+                                <div class="d-flex flex-column flex-sm-row justify-content-between align-items-sm-center mb-2">
+                                    <label class="form-label fw-bold mb-2 mb-sm-0 text-dark"><?php echo $label; ?></label>
+                                    <div>
+                                        <div class="form-check form-check-inline">
+                                            <input class="form-check-input" type="radio" name="status[<?php echo $key; ?>]" id="<?php echo $key; ?>_baik" value="Baik" required>
+                                            <label class="form-check-label text-success fw-medium" for="<?php echo $key; ?>_baik">Baik</label>
+                                        </div>
+                                        <div class="form-check form-check-inline">
+                                            <input class="form-check-input" type="radio" name="status[<?php echo $key; ?>]" id="<?php echo $key; ?>_perbaikan" value="Perbaikan">
+                                            <label class="form-check-label text-danger fw-medium" for="<?php echo $key; ?>_perbaikan">Perbaikan</label>
+                                        </div>
+                                    </div>
+                                </div>
+                                <input type="text" class="form-control form-control-sm bg-light border-0" name="catatan[<?php echo $key; ?>]" placeholder="Tambahkan catatan jika ada masalah...">
+                            </div>
+                            <?php endforeach; ?>
+                        </div>
+
+                        <div class="card-modern p-4 mb-4">
+                            <div class="mb-4">
+                                <label class="form-label fw-bold text-dark"><i class="bi bi-arrow-repeat me-2"></i>Update Status Kamar</label>
+                                <select class="form-select form-select-lg" name="status_kamar" required>
+                                    <option value="">-- Pilih Status Akhir --</option>
+                                    <option value="Tersedia">Tersedia (Siap Jual)</option>
+                                    <option value="Kotor">Kotor (Perlu Dibersihkan)</option>
+                                    <option value="Maintenance">Maintenance (Butuh Perbaikan)</option>
+                                </select>
+                            </div>
+
+                            <div class="mb-2">
+                                <label class="form-label fw-bold text-dark"><i class="bi bi-journal-text me-2"></i>Catatan Umum</label>
+                                <textarea class="form-control" name="catatan_umum" rows="3" placeholder="Tambahkan catatan umum terkait kondisi kamar secara keseluruhan..."></textarea>
                             </div>
                         </div>
-                        <?php endforeach; ?>
 
-                        <hr class="my-4">
-
-                        <div class="mb-4">
-                             <h4><i class="fas fa-sync-alt"></i> Update Status Kamar</h4>
-                            <select class="form-select" name="status_kamar" required>
-                                <option value="">-- Pilih Status Kamar --</option>
-                                <option value="Tersedia">Tersedia (Siap Jual)</option>
-                                <option value="Kotor">Kotor (Perlu Dibersihkan)</option>
-                                <option value="Maintenance">Maintenance (Butuh Perbaikan)</option>
-                            </select>
-                        </div>
-
-                        <div class="mb-4">
-                            <h4><i class="fas fa-sticky-note"></i> Catatan Umum</h4>
-                            <textarea class="form-control" name="catatan_umum" rows="3" placeholder="Tambahkan catatan umum jika diperlukan..."></textarea>
-                        </div>
-
-                        <div class="d-grid gap-2">
-                            <button type="submit" class="btn btn-submit btn-lg"><i class="fas fa-save"></i> Simpan Checklist & Update Status</button>
-                            <a href="checklist_kamar.php" class="btn btn-secondary"><i class="fas fa-times"></i> Batal</a>
+                        <div class="d-flex gap-2 justify-content-end mb-5">
+                            <a href="checklist_kamar.php" class="btn btn-light border px-4">Batal</a>
+                            <button type="submit" class="btn btn-primary px-4 fw-semibold">
+                                <i class="bi bi-save me-2"></i>Simpan Laporan
+                            </button>
                         </div>
                     </form>
                 </div>
             </div>
-        </div>
+        </main>
     </div>
-</div>
 
-<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        // Mobile sidebar toggle
+        document.addEventListener('DOMContentLoaded', function() {
+            const mobileSidebarToggleBtn = document.getElementById('mobile-sidebar-toggle');
+            const body = document.body;
+            if (mobileSidebarToggleBtn) {
+                mobileSidebarToggleBtn.addEventListener('click', (e) => {
+                    e.preventDefault();
+                    body.classList.toggle('sidebar-mobile-show');
+                });
+            }
+            document.addEventListener('click', function(e) {
+                if (body.classList.contains('sidebar-mobile-show') && !e.target.closest('#sidebarMenu') && !e.target.closest('#mobile-sidebar-toggle')) {
+                    body.classList.remove('sidebar-mobile-show');
+                }
+            });
+        });
+    </script>
 </body>
 </html>
