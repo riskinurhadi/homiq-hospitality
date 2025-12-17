@@ -88,7 +88,6 @@ $is_manajemen_page = strpos($current_page, 'manajemen_') === 0;
         --primary: #4361ee;
         --sidebar-bg: #0f172a;
         --sidebar-width: 260px;
-        --sidebar-width-minimized: 90px; /* Added from dashboard */
         --text-main: #334155;
         --text-muted: #64748b;
     }
@@ -244,84 +243,6 @@ $is_manajemen_page = strpos($current_page, 'manajemen_') === 0;
         color: #fff;
     }
 
-    /* --- Styles moved from dashboard.php --- */
-
-    /* Minimized State Base */
-    body.sidebar-minimized .sidebar {
-        width: var(--sidebar-width-minimized);
-        overflow: visible; /* Allow tooltips to show */
-    }
-
-    body.sidebar-minimized .sidebar-link span,
-    body.sidebar-minimized .sidebar-item-header,
-    body.sidebar-minimized .sidebar-brand span,
-    body.sidebar-minimized .sidebar-link[data-bs-toggle="collapse"]::after {
-        opacity: 0;
-        visibility: hidden;
-        transition: opacity 0.1s ease;
-        width: 0;
-        overflow: hidden;
-        white-space: nowrap;
-    }
-    
-    body.sidebar-minimized .sidebar-header {
-        justify-content: center;
-    }
-    
-    body.sidebar-minimized .sidebar-brand i {
-         margin-right: 0;
-    }
-    
-    body.sidebar-minimized .sidebar-link {
-        justify-content: center;
-    }
-    
-    body.sidebar-minimized .sidebar-link i {
-        margin-right: 0;
-    }
-    
-    body.sidebar-minimized .collapse {
-        display: none !important;
-    }
-
-    /* Floating Tooltip on Hover for minimized */
-    body.sidebar-minimized .sidebar-item {
-        position: relative;
-    }
-
-    body.sidebar-minimized .sidebar-item .sidebar-link span {
-        pointer-events: none; /* Prevent the hidden span from interfering */
-    }
-
-    body.sidebar-minimized .sidebar-item .sidebar-link:hover span {
-        position: absolute;
-        left: 100%;
-        top: 50%;
-        transform: translateY(-50%);
-        margin-left: 1rem; /* Space from the sidebar edge */
-        background-color: #1c273e;
-        padding: 0.75rem 1.25rem;
-        border-radius: 8px;
-        white-space: nowrap;
-        box-shadow: 0 8px 16px rgba(0,0,0,0.3);
-        border: 1px solid rgba(255, 255, 255, 0.1);
-        opacity: 1;
-        visibility: visible;
-        transition: opacity 0.2s ease, transform 0.2s ease;
-        z-index: 1050;
-        pointer-events: auto; /* Make the visible tooltip interactable if needed */
-    }
-    
-    body.sidebar-minimized .sidebar-footer {
-        flex-direction: column;
-        gap: 0.5rem;
-        align-items: center;
-    }
-    
-    body.sidebar-minimized .sidebar-footer span {
-        display: none;
-    }
-
     /* Responsive: Mobile view */
     @media (max-width: 991.98px) {
         .sidebar {
@@ -342,28 +263,5 @@ $is_manajemen_page = strpos($current_page, 'manajemen_') === 0;
             z-index: 1040;
         }
         
-        /* On mobile, minimized state has no effect */
-        body.sidebar-minimized .sidebar {
-            width: var(--sidebar-width);
-        }
-        body.sidebar-minimized .sidebar-link span,
-        body.sidebar-minimized .sidebar-item-header,
-        body.sidebar-minimized .sidebar-brand span,
-        body.sidebar-minimized .sidebar-link[data-bs-toggle="collapse"]::after {
-             opacity: 1;
-             visibility: visible;
-        }
-         body.sidebar-minimized .sidebar-header {
-            justify-content: flex-start;
-        }
-         body.sidebar-minimized .sidebar-brand i {
-            margin-right: 0.75rem;
-        }
-        body.sidebar-minimized .sidebar-link {
-            justify-content: flex-start;
-        }
-        body.sidebar-minimized .sidebar-link i {
-            margin-right: 1rem;
-        }
     }
 </style>
