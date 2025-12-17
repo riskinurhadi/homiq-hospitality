@@ -1,193 +1,256 @@
 <?php
-// sidebar.php
-// Sidebar navigation untuk semua halaman
-
-// Menentukan halaman aktif
+// sidebar.php (v2.0 - Modern, Fixed-Width)
 $current_page = basename($_SERVER['PHP_SELF']);
-$is_pengaturan_page = (strpos($current_page, 'manajemen_') === 0 || $current_page == 'pengaturan_properti.php');
+$is_manajemen_page = strpos($current_page, 'manajemen_') === 0;
 ?>
-<div class="sidebar-modern shadow-sm d-none d-lg-block" id="sidebarMenu">
-    <div class="offcanvas-body">
-        <div class="d-flex flex-column h-100">
-            <div class="sidebar-header d-flex align-items-center justify-content-center py-3 mb-3">
-                <a href="dashboard.php" class="text-decoration-none text-white fs-5 fw-bold">
-                    <i class="bi bi-buildings-fill me-2"></i>
-                    <span class="menu-text">HomiQ</span>
-                </a>
-            </div>
-        <ul class="nav flex-column sidebar-nav">
-            <li class="nav-item">
-                <a class="nav-link <?php echo ($current_page == 'dashboard.php') ? 'active' : ''; ?>" href="dashboard.php">
-                    <i class="bi bi-grid-3x3-gap"></i>
-                    <span class="menu-text">Dashboard</span>
+<nav class="sidebar" id="sidebarMenu">
+    <div class="sidebar-header">
+        <a href="dashboard.php" class="sidebar-brand">
+            <i class="bi bi-buildings-fill"></i>
+            <span>HomiQ</span>
+        </a>
+    </div>
+
+    <div class="sidebar-body">
+        <ul class="sidebar-nav">
+            <li class="sidebar-item-header">Menu Utama</li>
+            
+            <li class="sidebar-item">
+                <a class="sidebar-link <?php echo ($current_page == 'dashboard.php') ? 'active' : ''; ?>" href="dashboard.php">
+                    <i class="bi bi-grid"></i>
+                    <span>Dashboard</span>
                 </a>
             </li>
-            
+
             <?php if (in_array($role_user, ['admin', 'front_office'])): ?>
-                <li class="nav-item">
-                    <a class="nav-link <?php echo (in_array($current_page, ['daftar_reservasi.php', 'form_input_booking.php', 'detail_reservasi.php'])) ? 'active' : ''; ?>" href="daftar_reservasi.php">
-                        <i class="bi bi-calendar-check"></i>
-                        <span class="menu-text">Reservasi</span>
-                    </a>
-                </li>
-                <li class="nav-item">
-                    <a class="nav-link <?php echo ($current_page == 'daftar_tamu_checkout.php') ? 'active' : ''; ?>" href="daftar_tamu_checkout.php">
-                        <i class="bi bi-person-check"></i>
-                        <span class="menu-text">Tamu Checkout</span>
-                    </a>
-                </li>
-                <li class="nav-item">
-                    <a class="nav-link" href="#">
-                        <i class="bi bi-people"></i>
-                        <span class="menu-text">Data Tamu</span>
-                    </a>
-                </li>
+            <li class="sidebar-item">
+                <a class="sidebar-link <?php echo (in_array($current_page, ['daftar_reservasi.php', 'form_input_booking.php', 'detail_reservasi.php'])) ? 'active' : ''; ?>" href="daftar_reservasi.php">
+                    <i class="bi bi-calendar-check"></i>
+                    <span>Reservasi</span>
+                </a>
+            </li>
+            <li class="sidebar-item">
+                <a class="sidebar-link <?php echo ($current_page == 'daftar_tamu_checkout.php') ? 'active' : ''; ?>" href="daftar_tamu_checkout.php">
+                    <i class="bi bi-person-check"></i>
+                    <span>Tamu Checkout</span>
+                </a>
+            </li>
             <?php endif; ?>
-            
-            <?php if (in_array($role_user, ['admin', 'housekeeping'])): ?>
-                <li class="nav-item">
-                    <a class="nav-link" href="#">
-                        <i class="bi bi-house-check"></i>
-                        <span class="menu-text">Status Kamar</span>
-                    </a>
-                </li>
-                <li class="nav-item">
-                    <a class="nav-link" href="#">
-                        <i class="bi bi-wrench-adjustable"></i>
-                        <span class="menu-text">Maintenance</span>
-                    </a>
-                </li>
-            <?php endif; ?>
-            
+
             <?php if ($role_user == 'admin'): ?>
-                <li class="nav-item">
-                    <a class="nav-link" href="#">
-                        <i class="bi bi-journal-text"></i>
-                        <span class="menu-text">Laporan</span>
-                    </a>
-                </li>
-                <li class="nav-item">
-                    <a class="nav-link <?php echo $is_pengaturan_page ? 'active' : ''; ?>" 
-                       href="#submenu-pengaturan" 
-                       data-bs-toggle="collapse" 
-                       role="button" 
-                       aria-expanded="<?php echo $is_pengaturan_page ? 'true' : 'false'; ?>" 
-                       aria-controls="submenu-pengaturan">
-                        <i class="bi bi-gear-wide-connected"></i>
-                        <span class="menu-text">Pengaturan</span>
-                        <i class="bi bi-chevron-down ms-auto"></i>
-                    </a>
-                    <div class="collapse <?php echo $is_pengaturan_page ? 'show' : ''; ?>" id="submenu-pengaturan">
-                        <ul class="nav flex-column">
-                            <li class="nav-item">
-                                <a class="nav-link <?php echo ($current_page == 'manajemen_properti.php') ? 'active-submenu' : ''; ?>" href="manajemen_properti.php">
-                                    Properti
-                                </a>
-                            </li>
-                            <li class="nav-item">
-                                <a class="nav-link <?php echo ($current_page == 'manajemen_kamar.php') ? 'active-submenu' : ''; ?>" href="manajemen_kamar.php">
-                                    Kamar
-                                </a>
-                            </li>
-                            <li class="nav-item">
-                                <a class="nav-link <?php echo ($current_page == 'manajemen_user.php') ? 'active-submenu' : ''; ?>" href="manajemen_user.php">
-                                    User
-                                </a>
-                            </li>
-                        </ul>
-                    </div>
-                </li>
+            <li class="sidebar-item-header">Administrasi</li>
+            <li class="sidebar-item">
+                <a href="#submenu-manajemen" data-bs-toggle="collapse" class="sidebar-link <?php echo $is_manajemen_page ? '' : 'collapsed'; ?>" aria-expanded="<?php echo $is_manajemen_page ? 'true' : 'false'; ?>">
+                    <i class="bi bi-gear"></i>
+                    <span>Manajemen</span>
+                </a>
+                <div class="sidebar-submenu collapse <?php echo $is_manajemen_page ? 'show' : ''; ?>" id="submenu-manajemen">
+                    <ul class="sidebar-nav">
+                        <li class="sidebar-item">
+                             <a href="manajemen_properti.php" class="sidebar-link submenu-link <?php echo ($current_page == 'manajemen_properti.php') ? 'active' : ''; ?>">
+                                <span>Properti</span>
+                            </a>
+                        </li>
+                        <li class="sidebar-item">
+                             <a href="manajemen_kamar.php" class="sidebar-link submenu-link <?php echo ($current_page == 'manajemen_kamar.php') ? 'active' : ''; ?>">
+                                <span>Kamar</span>
+                            </a>
+                        </li>
+                        <li class="sidebar-item">
+                            <a href="manajemen_user.php" class="sidebar-link submenu-link <?php echo ($current_page == 'manajemen_user.php') ? 'active' : ''; ?>">
+                                <span>User</span>
+                            </a>
+                        </li>
+                    </ul>
+                </div>
+            </li>
+            <li class="sidebar-item">
+                <a class="sidebar-link" href="#">
+                    <i class="bi bi-journal-text"></i>
+                    <span>Laporan</span>
+                </a>
+            </li>
             <?php endif; ?>
         </ul>
-
-        <div class="sidebar-footer">
-            <a class="nav-link nav-link-logout" href="logout.php">
-                <i class="bi bi-box-arrow-right"></i>
-                <span class="menu-text">Keluar</span>
-            </a>
-        </div>
-        </div>
     </div>
-</div>
+
+    <div class="sidebar-footer">
+        <a href="logout.php" class="sidebar-link logout-link">
+            <i class="bi bi-box-arrow-left"></i>
+            <span>Keluar</span>
+        </a>
+    </div>
+</nav>
 
 <style>
-    .sidebar-modern {
-        background-color: var(--sidebar-bg);
+    :root {
+        /* Re-define here as a fallback */
+        --primary: #4361ee;
+        --sidebar-bg: #0f172a;
+        --sidebar-width: 260px;
+        --text-main: #334155;
+        --text-muted: #64748b;
+    }
+
+    .sidebar {
         width: var(--sidebar-width);
         position: fixed;
         top: 0;
         left: 0;
         bottom: 0;
-        z-index: 1040;
-        transition: width 0.3s ease;
-    }
-    .sidebar-header .menu-text {
-        transition: opacity 0.3s ease;
+        background-color: var(--sidebar-bg);
+        color: #e2e8f0;
+        display: flex;
+        flex-direction: column;
+        z-index: 1030;
+        border-right: 1px solid rgba(255, 255, 255, 0.05);
+        transition: margin-left 0.35s ease-in-out;
     }
 
-    .sidebar-nav .nav-link {
-        color: rgba(255, 255, 255, 0.7);
-        border-radius: 8px;
-        margin-bottom: 4px;
-        padding: 0.8rem 1rem;
+    .sidebar-header {
+        padding: 1.25rem;
+        border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+    }
+
+    .sidebar-brand {
         display: flex;
         align-items: center;
-        font-weight: 500;
-        transition: background-color 0.2s, color 0.2s;
+        text-decoration: none;
+        color: #fff;
+        font-size: 1.5rem;
+        font-weight: 700;
+    }
+    .sidebar-brand i {
+        font-size: 1.5rem;
+        margin-right: 0.75rem;
+        color: var(--primary);
+    }
+
+    .sidebar-body {
+        flex-grow: 1;
+        overflow-y: auto;
+        padding: 1rem 0;
+    }
+    /* Simple scrollbar styling */
+    .sidebar-body::-webkit-scrollbar {
+        width: 6px;
+    }
+    .sidebar-body::-webkit-scrollbar-thumb {
+        background-color: rgba(255,255,255,0.1);
+        border-radius: 3px;
+    }
+
+    .sidebar-nav {
+        list-style: none;
+        padding-left: 0;
+    }
+
+    .sidebar-item-header {
+        padding: 0.75rem 1.5rem;
+        font-size: 0.75rem;
+        font-weight: 600;
+        color: var(--text-muted);
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+    }
+
+    .sidebar-item {
+        padding: 0 1rem;
+    }
+    
+    .sidebar-link {
+        display: flex;
+        align-items: center;
+        padding: 0.8rem 1rem;
+        border-radius: 8px;
+        color: #cbd5e1;
+        text-decoration: none;
+        transition: background-color 0.2s ease, color 0.2s ease;
         white-space: nowrap;
+        font-weight: 500;
     }
-
-    .sidebar-nav .nav-link i {
-        font-size: 1.2rem;
-        margin-right: 0.85rem;
-        width: 24px;
-        text-align: center;
-        transition: all 0.2s ease-in-out;
+    .sidebar-link:hover {
+        background-color: rgba(255, 255, 255, 0.05);
+        color: #fff;
     }
-    
-    .sidebar-nav .nav-link .menu-text {
-        transition: opacity 0.2s ease-in-out;
-    }
-
-    .sidebar-nav .nav-link:hover {
-        background-color: rgba(255, 255, 255, 0.1);
-        color: #ffffff;
-    }
-
-    .sidebar-nav .nav-link.active {
-        background: var(--primary);
-        color: #ffffff;
-        box-shadow: 0 4px 12px rgba(67, 97, 238, 0.3);
-    }
-    
-    .sidebar-modern .collapse .nav-link {
-        padding-left: 3rem; 
-        font-size: 0.9rem;
-    }
-    .sidebar-modern .collapse .nav-link.active-submenu{
+    .sidebar-link.active {
+        background-color: var(--primary);
         color: #fff;
         font-weight: 600;
+        box-shadow: 0 4px 15px -3px rgba(67, 97, 238, 0.4);
+    }
+    .sidebar-link i {
+        margin-right: 1rem;
+        font-size: 1.1rem;
+        width: 20px;
     }
 
+    /* Submenu */
+    .sidebar-link[data-bs-toggle="collapse"]::after {
+        content: '\F282'; /* Bootstrap Icons chevron-down */
+        font-family: 'bootstrap-icons';
+        margin-left: auto;
+        transition: transform 0.2s ease-in-out;
+    }
+    .sidebar-link[data-bs-toggle="collapse"].collapsed::after {
+        transform: rotate(-90deg);
+    }
+    .sidebar-submenu {
+        padding-left: 1rem;
+    }
+    .sidebar-submenu .sidebar-link {
+        padding: 0.6rem 1rem;
+        font-size: 0.9rem;
+    }
+    .sidebar-submenu .sidebar-link.active {
+        background: transparent;
+        box-shadow: none;
+        color: #fff;
+        font-weight: 500;
+    }
+    .sidebar-submenu .sidebar-link.active span::before {
+        content: '';
+        display: inline-block;
+        width: 6px;
+        height: 6px;
+        background-color: var(--primary);
+        border-radius: 50%;
+        margin-right: 0.75rem;
+        box-shadow: 0 0 10px var(--primary);
+    }
+    
     .sidebar-footer {
-        margin-top: auto;
         padding: 1rem;
-        border-top: 1px solid rgba(255, 255, 255, 0.1);
-        display: flex;
+        border-top: 1px solid rgba(255, 255, 255, 0.05);
     }
-
-    .sidebar-footer .nav-link-logout {
-        flex-grow: 1;
-        background-color: rgba(255,255,255,0.05);
-        color: rgba(255, 255, 255, 0.7);
-        display: flex;
-        align-items: center;
-        padding: 0.7rem 1rem;
-        border-radius: 8px;
-        white-space: nowrap;
+    .sidebar-footer .logout-link {
+        justify-content: center;
+        background-color: rgba(239, 71, 111, 0.1);
+        color: #f78da7;
     }
-    .sidebar-footer .nav-link-logout:hover {
+    .sidebar-footer .logout-link:hover {
         background-color: rgba(239, 71, 111, 0.2);
         color: #fff;
+    }
+
+    /* Responsive: Mobile view */
+    @media (max-width: 991.98px) {
+        .sidebar {
+            margin-left: calc(var(--sidebar-width) * -1);
+            z-index: 1045;
+        }
+        body.sidebar-mobile-show .sidebar {
+            margin-left: 0;
+        }
+        body.sidebar-mobile-show::before {
+            content: '';
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.5);
+            z-index: 1040;
+        }
     }
 </style>
