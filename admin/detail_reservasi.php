@@ -94,7 +94,6 @@ $koneksi->close();
         }
 
         #main-content {
-            transition: margin-left 0.3s ease, width 0.3s ease;
             width: 100%;
             margin-left: var(--sidebar-width);
         }
