@@ -1,11 +1,44 @@
 <?php
+// Error logging setup
+ini_set('display_errors', 0); // Do not display errors on screen
+ini_set('log_errors', 1); // Log errors to a file
+ini_set('error_log', 'C:/Users/RISKI NURHADI/.gemini/tmp/ab2ba117f30514462c49772eb8acb08566770f7cc4a34fa6c264df13a5ef6d37/proses_checkin_error.log');
+error_reporting(E_ALL);
+
+function customErrorHandler($errno, $errstr, $errfile, $errline) {
+    error_log("PHP Error: [$errno] $errstr in $errfile on line $errline");
+    // Return true to prevent PHP's default error handler from running
+    return true; 
+}
+set_error_handler("customErrorHandler");
+
+function customExceptionHandler($exception) {
+    error_log("PHP Uncaught Exception: " . $exception->getMessage() . " in " . $exception->getFile() . " on line " . $exception->getLine());
+    http_response_code(500);
+    echo json_encode(['ok' => false, 'message' => 'An unexpected server error occurred. Check logs.']);
+    exit();
+}
+set_exception_handler("customExceptionHandler");
+
+// Start output buffering (already present, keep it)
+ob_start();
+
 // proses_checkin.php
 // Meng-handle upload identitas, update status pembayaran, dan check-in
 
 header('Content-Type: application/json');
+ob_clean(); // Clean any output before sending JSON header
 
 require_once 'auth_check.php';
 require_once 'koneksi.php';
+
+// Check for database connection error immediately
+if ($koneksi->connect_error) {
+    error_log("Database Connection Error: " . $koneksi->connect_error);
+    http_response_code(500);
+    echo json_encode(['ok' => false, 'message' => 'Database connection failed. Check logs.']);
+    exit();
+}
 
 $response = ['ok' => false, 'message' => 'Terjadi kesalahan tidak diketahui.'];
 
