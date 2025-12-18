@@ -49,8 +49,12 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                 $_SESSION['nama_lengkap'] = $user['nama_lengkap'];
                 $_SESSION['role'] = $user['role'];
                 
-                // Redirect ke dashboard
-                header("Location: dashboard.php");
+                // Redirect based on role
+                if ($user['role'] == 'admin') {
+                    header("Location: admin/dashboard.php");
+                } else {
+                    header("Location: dashboard.php");
+                }
                 exit();
             } else {
                 $error_message = 'Username atau password salah!';
