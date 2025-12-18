@@ -1,4 +1,25 @@
 <?php
+// Error logging setup
+ini_set('display_errors', 0); // Do not display errors on screen
+ini_set('log_errors', 1); // Log errors to a file
+ini_set('error_log', 'C:/Users/RISKI NURHADI/.gemini/tmp/ab2ba117f30514462c49772eb8acb08566770f7cc4a34fa6c264df13a5ef6d37/get_kamar_error.log');
+error_reporting(E_ALL);
+
+function customErrorHandler($errno, $errstr, $errfile, $errline) {
+    // This will prevent PHP's default error handler from running.
+    error_log("PHP Error: [$errno] $errstr in $errfile on line $errline");
+    return true; // Don't execute PHP internal error handler
+}
+set_error_handler("customErrorHandler");
+
+function customExceptionHandler($exception) {
+    error_log("PHP Uncaught Exception: " . $exception->getMessage() . " in " . $exception->getFile() . " on line " . $exception->getLine());
+    http_response_code(500);
+    echo json_encode(['error' => 'An unexpected server error occurred. Check logs.']);
+    exit();
+}
+set_exception_handler("customExceptionHandler");
+
 ob_start(); // Start output buffering
 // get_kamar.php
 // API endpoint untuk mendapatkan daftar kamar yang tersedia berdasarkan properti dan rentang tanggal (AJAX)
@@ -7,6 +28,14 @@ header('Content-Type: application/json');
 ob_clean(); // Clean any output before sending JSON header
 
 require_once 'koneksi.php';
+
+// Check for database connection error immediately
+if ($koneksi->connect_error) {
+    error_log("Database Connection Error: " . $koneksi->connect_error);
+    http_response_code(500);
+    echo json_encode(['error' => 'Database connection failed. Check logs.']);
+    exit();
+}
 
 // Ambil parameter dari GET request
 $id_properti = isset($_GET['properti']) ? (int)$_GET['properti'] : 0;
