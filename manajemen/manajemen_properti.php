@@ -261,7 +261,7 @@ $koneksi->close();
 </head>
 <body style="overflow-x: hidden;">
     
-    <?php include 'sidebar.php'; ?>
+    <?php include '../sidebar.php'; ?>
 
     <main id="main-content" class="flex-grow-1 p-3 p-md-4">
         <header class="d-flex justify-content-between align-items-center mb-4">
