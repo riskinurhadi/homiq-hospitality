@@ -601,13 +601,17 @@ $koneksi->close();
             const bookingType = document.getElementById('jenis_booking').value;
             const checkinDate = document.getElementById('tgl_checkin').value;
             const checkoutDate = document.getElementById('tgl_checkout').value;
-            const checkinTime = document.getElementById('jam_checkin').value;
-            const checkoutTime = document.getElementById('jam_checkout').value;
+            const jamCheckinInput = document.getElementById('jam_checkin');
+            const jamCheckoutInput = document.getElementById('jam_checkout');
+            const checkinTime = jamCheckinInput ? jamCheckinInput.value : '';
+            const checkoutTime = jamCheckoutInput ? jamCheckoutInput.value : '';
 
+            // Disable the select and show a loading message initially
+            kamarSelect.disabled = true;
             kamarSelect.innerHTML = '<option value="">Memuat kamar...</option>';
             
             if (!idProperti) {
-                kamarSelect.innerHTML = '<option value="">Pilih Properti</option>';
+                kamarSelect.innerHTML = '<option value="">Pilih Properti dahulu</option>';
                 return;
             }
 
@@ -621,7 +625,7 @@ $koneksi->close();
                 } else {
                     kamarSelect.innerHTML = '<option value="">Pilih tanggal & jam transit</option>';
                 }
-            } else { 
+            } else { // Harian or Guesthouse
                 if (checkinDate && checkoutDate) {
                     queryString += `&checkin=${checkinDate}&checkout=${checkoutDate}`;
                     canFetch = true;
@@ -630,7 +634,10 @@ $koneksi->close();
                 }
             }
 
-            if (!canFetch) return;
+            if (!canFetch) {
+                // If we can't fetch, the select remains disabled and shows the appropriate message
+                return;
+            }
             
             fetch(`../get_kamar.php?${queryString}`)
                 .then(response => {
@@ -647,6 +654,8 @@ $koneksi->close();
                     kamarSelect.innerHTML = '<option value="">Silakan Pilih Kamar</option>';
                     if (data.length === 0) {
                         kamarSelect.innerHTML = '<option value="">Tidak ada kamar tersedia</option>';
+                        // Keep disabled if no rooms are available after fetch
+                        kamarSelect.disabled = true;
                         return;
                     }
 
@@ -663,7 +672,7 @@ $koneksi->close();
                         kamarSelect.appendChild(option);
                     });
                     
-                    kamarSelect.disabled = false;
+                    kamarSelect.disabled = false; // Only enable if rooms are successfully loaded
                 })
                 .catch(error => {
                     console.error('Error fetching rooms:', error);
