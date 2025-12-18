@@ -526,12 +526,12 @@ $koneksi->close();
                 loadKamar();
             });
 
-            handleBookingTypeChange();
+            handleBookingTypeChange(isEditMode, editingId);
             
             if (isEditMode && document.getElementById('id_properti').value) {
-                loadKamar(initialSelectedKamar);
+                loadKamar(isEditMode, editingId, initialSelectedKamar);
             } else if (document.getElementById('id_properti').value) {
-                loadKamar();
+                loadKamar(isEditMode, editingId);
             }
 
             const statusPembayaranSelect = document.getElementById('status_pembayaran');
@@ -567,7 +567,7 @@ $koneksi->close();
              document.getElementById('jam_checkout').value = `${checkoutHours}:${checkoutMinutes}`;
         }
 
-        function handleBookingTypeChange() {
+        function handleBookingTypeChange(isEditMode, editingId) {
             const bookingType = document.getElementById('jenis_booking').value;
             const harianGuesthouseFields = document.getElementById('harian-guesthouse-fields');
             const transitFields = document.getElementById('transit-fields');
@@ -591,7 +591,7 @@ $koneksi->close();
             }
             
             updateTransitCheckoutTime();
-            loadKamar(isEditMode ? [<?php echo (int)($reservasi_data['id_kamar'] ?? 0); ?>] : []);
+            loadKamar(isEditMode, editingId, isEditMode ? [<?php echo (int)($reservasi_data['id_kamar'] ?? 0); ?>] : []);
         }
 
         function loadKamar(selectedKamarIds = []) {
