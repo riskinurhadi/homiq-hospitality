@@ -633,7 +633,14 @@ $koneksi->close();
             if (!canFetch) return;
             
             fetch(`../get_kamar.php?${queryString}`)
-                .then(response => response.ok ? response.json() : Promise.reject('Gagal mengambil data'))
+                .then(response => {
+                    if (!response.ok) {
+                        // Check if the response is JSON, otherwise just throw generic error
+                        return response.json().catch(() => Promise.reject(`HTTP error! Status: ${response.status}`))
+                                .then(err => Promise.reject(err.error || `HTTP error! Status: ${response.status}`));
+                    }
+                    return response.json();
+                })
                 .then(data => {
                     if (data.error) throw new Error(data.error);
                     
@@ -660,7 +667,8 @@ $koneksi->close();
                 })
                 .catch(error => {
                     console.error('Error fetching rooms:', error);
-                    kamarSelect.innerHTML = '<option value="">Gagal memuat kamar</option>';
+                    kamarSelect.innerHTML = `<option value="">Gagal memuat kamar: ${error.message || error}</option>`;
+                    kamarSelect.disabled = true;
                 });
         }
     </script>

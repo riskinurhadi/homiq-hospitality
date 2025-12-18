@@ -1,8 +1,10 @@
 <?php
+ob_start(); // Start output buffering
 // get_kamar.php
 // API endpoint untuk mendapatkan daftar kamar yang tersedia berdasarkan properti dan rentang tanggal (AJAX)
 
 header('Content-Type: application/json');
+ob_clean(); // Clean any output before sending JSON header
 
 require_once 'koneksi.php';
 
