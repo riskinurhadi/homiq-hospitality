@@ -419,7 +419,9 @@ $koneksi->close();
                         }
                         if (paymentUpdateSelect.value === 'DP') {
                             const dpAmountInput = document.querySelector('#dp_field_modal input');
-                            if (!dpAmountInput || dpAmountInput.value.trim() === '' || parseFloat(dpAmountInput.value) <= 0) {
+                            const cleanedDpAmount = dpAmountInput.value.replace(/[^0-9,-]+/g, '').replace(',', '.');
+                            const dpValue = parseFloat(cleanedDpAmount);
+                            if (!dpAmountInput || dpAmountInput.value.trim() === '' || isNaN(dpValue) || dpValue <= 0) {
                                 Swal.fire('Oops...', 'Silakan masukkan jumlah DP yang valid.', 'warning');
                                 return;
                             }
