@@ -205,7 +205,6 @@ if ($role_user == 'housekeeping') :
         flex-direction: column;
         z-index: 1030;
         border-right: 1px solid rgba(255, 255, 255, 0.05);
-        transition: width 0.3s ease, margin-left 0.35s ease-in-out;
     }
 
     .sidebar-header {
