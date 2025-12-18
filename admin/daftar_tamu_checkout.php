@@ -118,7 +118,6 @@ $koneksi->close();
         }
 
         #main-content {
-            transition: width 0.3s ease;
             width: 100%;
         }
 
