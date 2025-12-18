@@ -2,15 +2,15 @@
 // manajemen_user.php
 // Halaman untuk mengelola pengguna (view + scaffold CRUD)
 
-require_once 'auth_check.php';
+require_once '../auth_check.php';
 
 // Hanya admin yang dapat mengakses halaman ini
 if ($role_user != 'admin') {
-    header("Location: dashboard.php");
+    header("Location: ../dashboard.php");
     exit();
 }
 
-require_once 'koneksi.php';
+require_once '../koneksi.php';
 
 $success_message = '';
 $error_message = '';
@@ -239,7 +239,7 @@ $koneksi->close();
 </head>
 <body style="overflow-x: hidden;">
     
-    <?php include 'sidebar.php'; ?>
+    <?php include '../sidebar.php'; ?>
 
     <main id="main-content" class="flex-grow-1 p-3 p-md-4">
          <header class="d-flex justify-content-between align-items-center mb-4">

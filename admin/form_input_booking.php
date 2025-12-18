@@ -2,15 +2,15 @@
 // form_input_booking.php
 // Form untuk input booking baru (Internal/OTS) atau edit
 
-require_once 'auth_check.php';
+require_once '../auth_check.php';
 
 // Cek apakah user adalah admin atau front_office
 if (!in_array($role_user, ['admin', 'front_office'])) {
-    header("Location: dashboard.php");
+    header("Location: ../dashboard.php");
     exit();
 }
 
-require_once 'koneksi.php';
+require_once '../koneksi.php';
 
 $is_edit_mode = isset($_GET['edit']) && !empty($_GET['edit']);
 $id_reservasi_edit = $is_edit_mode ? (int)$_GET['edit'] : 0;
@@ -301,7 +301,7 @@ $koneksi->close();
 </head>
 <body style="overflow-x: hidden;">
     
-    <?php include 'sidebar.php'; ?>
+    <?php include '../sidebar.php'; ?>
 
     <main id="main-content" class="flex-grow-1 p-3 p-md-4">
         <header class="d-flex justify-content-between align-items-center mb-4">
