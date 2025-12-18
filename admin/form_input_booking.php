@@ -594,7 +594,7 @@ $koneksi->close();
             loadKamar(isEditMode, editingId, isEditMode ? [<?php echo (int)($reservasi_data['id_kamar'] ?? 0); ?>] : []);
         }
 
-        function loadKamar(selectedKamarIds = []) {
+        function loadKamar(isEditMode, editingId, selectedKamarIds = []) {
             const idProperti = document.getElementById('id_properti').value;
             const kamarSelect = document.getElementById('id_kamar');
             
@@ -615,7 +615,8 @@ $koneksi->close();
                 return;
             }
 
-            let queryString = `properti=${idProperti}&jenis_booking=${bookingType}&editing_id=${isEditMode ? <?php echo $id_reservasi_edit; ?> : 0}`;
+            // Corrected: Use JavaScript variables isEditMode and editingId
+            let queryString = `properti=${idProperti}&jenis_booking=${bookingType}&editing_id=${isEditMode ? editingId : 0}`;
             
             let canFetch = false;
             if (bookingType.includes('Transit')) {
