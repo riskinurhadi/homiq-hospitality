@@ -175,7 +175,7 @@ $koneksi->close();
 <body style="overflow-x: hidden;">
     <div id="main-container">
         <!-- SIDEBAR -->
-        <?php include '../sidebar.php'; ?>
+        <?php include 'sidebar.php'; ?>
 
         <!-- MAIN CONTENT -->
         <div id="main-content" class="flex-grow-1 p-3 p-md-4">

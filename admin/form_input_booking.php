@@ -301,7 +301,7 @@ $koneksi->close();
 </head>
 <body style="overflow-x: hidden;">
     
-    <?php include '../sidebar.php'; ?>
+    <?php include 'sidebar.php'; ?>
 
     <main id="main-content" class="flex-grow-1 p-3 p-md-4">
         <header class="d-flex justify-content-between align-items-center mb-4">
@@ -482,30 +482,13 @@ $koneksi->close();
     <script>
         document.addEventListener('DOMContentLoaded', function() {
             // --- Sidebar Toggle Logic ---
-            const sidebarToggleBtn = document.getElementById('sidebar-toggle');
             const mobileSidebarToggleBtn = document.getElementById('mobile-sidebar-toggle');
             const body = document.body;
-
-            const toggleSidebar = () => {
-                body.classList.toggle('sidebar-minimized');
-                const isMinimized = body.classList.contains('sidebar-minimized');
-                localStorage.setItem('sidebarMinimized', isMinimized ? 'true' : 'false');
-            };
 
             const toggleMobileSidebar = () => {
                 body.classList.toggle('sidebar-mobile-show');
             };
             
-            if (localStorage.getItem('sidebarMinimized') === 'true') {
-                body.classList.add('sidebar-minimized');
-            }
-
-            if (sidebarToggleBtn) {
-                sidebarToggleBtn.addEventListener('click', (e) => {
-                    e.preventDefault();
-                    toggleSidebar();
-                });
-            }
             if (mobileSidebarToggleBtn) {
                 mobileSidebarToggleBtn.addEventListener('click', (e) => {
                     e.preventDefault();

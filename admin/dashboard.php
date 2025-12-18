@@ -428,7 +428,7 @@ $koneksi->close();
 <body class="<?php if (isset($_SESSION['role']) && $_SESSION['role'] === 'Housekeeping') { echo 'has-bottom-nav'; } ?>">
     <div class="wrapper">
         <!-- SIDEBAR -->
-        <?php include '../sidebar.php'; ?>
+        <?php include 'sidebar.php'; ?>
 
         <!-- MAIN CONTENT -->
         <main id="main-content" class="p-3 p-md-4">
