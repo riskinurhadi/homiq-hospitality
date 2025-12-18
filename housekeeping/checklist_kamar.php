@@ -1,7 +1,7 @@
 <?php
 session_start();
-include 'koneksi.php';
-include 'auth_check.php';
+include '../koneksi.php';
+include '../auth_check.php';
 
 // Ambil nama user untuk header (fallback jika belum diset)
 $nama_lengkap = $_SESSION['nama_lengkap'] ?? 'User';
@@ -126,7 +126,7 @@ $nama_lengkap = $_SESSION['nama_lengkap'] ?? 'User';
 </head>
 <body class="<?php if (isset($_SESSION['role']) && $_SESSION['role'] === 'Housekeeping') { echo 'has-bottom-nav'; } ?>">
     <div class="wrapper">
-        <?php include 'sidebar.php'; ?>
+        <?php include '../sidebar.php'; ?>
 
         <main id="main-content" class="p-3 p-md-4">
             <!-- Header -->

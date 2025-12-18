@@ -1,7 +1,7 @@
 <?php
 session_start();
-include 'koneksi.php';
-include 'auth_check.php';
+include '../koneksi.php';
+include '../auth_check.php';
 
 // Pastikan ini adalah request POST
 if ($_SERVER['REQUEST_METHOD'] !== 'POST') {

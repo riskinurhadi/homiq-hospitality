@@ -2,9 +2,9 @@
 // cetak_struk.php
 // Hasilkan PDF struk/invoice untuk reservasi
 
-require_once 'auth_check.php';
-require_once 'koneksi.php';
-require_once 'lib/fpdf/fpdf.php'; // Sesuaikan path jika perlu
+require_once '../auth_check.php';
+require_once '../koneksi.php';
+require_once '../lib/fpdf/fpdf.php'; // Sesuaikan path jika perlu
 
 // Validasi ID Reservasi
 $id_reservasi = isset($_GET['id']) ? (int)$_GET['id'] : 0;

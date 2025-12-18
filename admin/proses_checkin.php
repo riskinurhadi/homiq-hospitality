@@ -4,8 +4,8 @@
 
 header('Content-Type: application/json');
 
-require_once 'auth_check.php';
-require_once 'koneksi.php';
+require_once '../auth_check.php';
+require_once '../koneksi.php';
 
 $response = ['ok' => false, 'message' => 'Terjadi kesalahan tidak diketahui.'];
 
@@ -42,10 +42,15 @@ if (!in_array($file['type'], $allowed_types)) {
 }
 
 // Tentukan path upload
-$upload_dir = 'uploads/identitas/';
+$upload_dir = '../uploads/identitas/';
+$db_upload_dir = 'uploads/identitas/';
+if (!is_dir($upload_dir)) {
+    mkdir($upload_dir, 0775, true);
+}
 $file_extension = pathinfo($file['name'], PATHINFO_EXTENSION);
 $file_name = 'identitas_' . $id_reservasi . '_' . time() . '.' . $file_extension;
 $upload_path = $upload_dir . $file_name;
+$db_upload_path = $db_upload_dir . $file_name;
 
 // Mulai transaksi database
 $koneksi->begin_transaction();
@@ -101,7 +106,7 @@ try {
     // 4. Update status booking menjadi 'Checked-in' dan simpan path identitas
     $new_status_booking = 'Checked-in';
     $stmt_checkin = $koneksi->prepare("UPDATE tbl_reservasi SET status_booking = ?, path_identitas = ? WHERE id_reservasi = ?");
-    $stmt_checkin->bind_param("ssi", $new_status_booking, $upload_path, $id_reservasi);
+    $stmt_checkin->bind_param("ssi", $new_status_booking, $db_upload_path, $id_reservasi);
     $stmt_checkin->execute();
     $stmt_checkin->close();
 

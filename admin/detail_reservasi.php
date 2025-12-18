@@ -2,14 +2,14 @@
 // detail_reservasi.php
 // Halaman detail reservasi lengkap
 
-require_once 'auth_check.php';
+require_once '../auth_check.php';
 
 if (!in_array($role_user, ['admin', 'front_office'])) {
-    header("Location: dashboard.php");
+    header("Location: ../dashboard.php");
     exit();
 }
 
-require_once 'koneksi.php';
+require_once '../koneksi.php';
 
 $id_reservasi = isset($_GET['id']) ? (int)$_GET['id'] : 0;
 
@@ -239,7 +239,7 @@ $koneksi->close();
 </head>
 <body style="overflow-x: hidden;">
     
-    <?php include 'sidebar.php'; ?>
+    <?php include '../sidebar.php'; ?>
 
     <main id="main-content" class="flex-grow-1 p-3 p-md-4">
         <header class="d-flex justify-content-between align-items-center mb-4">
@@ -311,7 +311,7 @@ $koneksi->close();
                             <button class="btn btn-danger" onclick="doUpdateStatus('cancel')"><i class="bi bi-x-circle me-2"></i>Batalkan Reservasi</button>
                         <?php endif; ?>
                         <?php if ($reservasi['status_booking'] == 'Checked-out'): ?>
-                            <a href="cetak_struk.php?id=<?php echo $id_reservasi; ?>" class="btn btn-info" target="_blank"><i class="bi bi-printer me-2"></i>Download Struk</a>
+                            <a href="../finance/cetak_struk.php?id=<?php echo $id_reservasi; ?>" class="btn btn-info" target="_blank"><i class="bi bi-printer me-2"></i>Download Struk</a>
                         <?php endif; ?>
                         <?php if ($reservasi['status_booking'] == 'Checked-in'): ?>
                             <button class="btn btn-primary" onclick="doUpdateStatus('checkout')"><i class="bi bi-box-arrow-right me-2"></i>Check-Out</button>

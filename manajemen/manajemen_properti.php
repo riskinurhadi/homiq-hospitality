@@ -2,14 +2,14 @@
 // manajemen_properti.php
 // Halaman untuk mengelola properti (CRUD)
 
-require_once 'auth_check.php';
+require_once '../auth_check.php';
 
 if ($role_user != 'admin') {
-    header("Location: dashboard.php");
+    header("Location: ../dashboard.php");
     exit();
 }
 
-require_once 'koneksi.php';
+require_once '../koneksi.php';
 
 $success_message = '';
 $error_message = '';

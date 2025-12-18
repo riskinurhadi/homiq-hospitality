@@ -650,7 +650,7 @@ $koneksi->close();
 
             if (!canFetch) return;
             
-            fetch(`get_kamar.php?${queryString}`)
+            fetch(`../get_kamar.php?${queryString}`)
                 .then(response => response.ok ? response.json() : Promise.reject('Gagal mengambil data'))
                 .then(data => {
                     if (data.error) throw new Error(data.error);
