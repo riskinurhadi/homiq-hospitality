@@ -367,6 +367,51 @@ $koneksi->close();
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
     <script>
+        // Fungsi global untuk update status (Cancel/Checkout) agar bisa dipanggil dari onclick HTML
+        function doUpdateStatus(action) {
+            const actionText = {
+                cancel: 'membatalkan',
+                checkout: 'check-out'
+            };
+
+            if (action === 'checkin') return;
+
+            Swal.fire({
+                title: 'Konfirmasi',
+                text: `Apakah Anda yakin ingin ${actionText[action] || action} reservasi ini?`,
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonColor: '#3085d6',
+                cancelButtonColor: '#d33',
+                confirmButtonText: 'Ya, Lanjutkan',
+                cancelButtonText: 'Batal'
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    Swal.fire({
+                        title: 'Memproses...',
+                        allowOutsideClick: false,
+                        didOpen: () => Swal.showLoading()
+                    });
+
+                    const formData = new FormData();
+                    formData.append('id', <?php echo $id_reservasi; ?>);
+                    formData.append('action', action);
+
+                    fetch('update_reservasi.php', { method: 'POST', body: formData })
+                        .then(res => res.json())
+                        .then(res => {
+                            if (res.ok) {
+                                Swal.fire('Berhasil!', 'Status reservasi berhasil diperbarui.', 'success')
+                                     .then(() => location.reload());
+                            } else {
+                                Swal.fire('Gagal', res.message || 'Gagal memperbarui status.', 'error');
+                            }
+                        })
+                        .catch(() => Swal.fire('Error', 'Terjadi kesalahan koneksi.', 'error'));
+                }
+            });
+        }
+
         document.addEventListener('DOMContentLoaded', function() {
             // --- Sidebar Toggle Logic ---
             const mobileSidebarToggleBtn = document.getElementById('mobile-sidebar-toggle');
@@ -390,7 +435,6 @@ $koneksi->close();
             });
 
             // --- Page Specific Logic ---
-            const idReservasi = <?php echo $id_reservasi; ?>;
             const statusPembayaranAwal = '<?php echo $reservasi['status_pembayaran']; ?>';
             const bootstrapModal = new bootstrap.Modal(document.getElementById('modalIdentitas'));
             const btnUpload = document.getElementById('btnUpload');
@@ -401,109 +445,58 @@ $koneksi->close();
 
             if (paymentUpdateSelect) {
                 paymentUpdateSelect.addEventListener('change', () => {
-                    dpFieldModal.classList.toggle('d-none', paymentUpdateSelect.value !== 'DP');
+                    if(dpFieldModal) dpFieldModal.classList.toggle('d-none', paymentUpdateSelect.value !== 'DP');
                 });
             }
 
             if (btnUpload) {
-                btnUpload.onclick = () => {
+                btnUpload.onclick = async () => {
+                    // 1. Validasi Input File
                     if (fotoInput.files.length === 0) {
-                         Swal.fire('Oops...', 'Anda harus memilih atau mengambil foto identitas terlebih dahulu.', 'warning');
+                         Swal.fire('Peringatan', 'Silakan upload foto identitas tamu terlebih dahulu.', 'warning');
                          return;
                     }
                     
+                    // 2. Validasi Status Pembayaran
                     if (statusPembayaranAwal === 'Belum Bayar') {
-                        if (!paymentUpdateSelect || paymentUpdateSelect.value === '') {
-                            Swal.fire('Oops...', 'Silakan update status pembayaran menjadi DP atau Lunas.', 'warning');
+                        if (!paymentUpdateSelect || !paymentUpdateSelect.value) {
+                            Swal.fire('Peringatan', 'Silakan pilih status pembayaran (DP atau Lunas).', 'warning');
                             return;
                         }
                         if (paymentUpdateSelect.value === 'DP') {
-                            const dpAmountInput = document.querySelector('#dp_field_modal input');
-                            const cleanedDpAmount = dpAmountInput.value.replace(/[^0-9,-]+/g, '').replace(',', '.');
-                            const dpValue = parseFloat(cleanedDpAmount);
-                            if (!dpAmountInput || dpAmountInput.value.trim() === '' || isNaN(dpValue) || dpValue <= 0) {
-                                Swal.fire('Oops...', 'Silakan masukkan jumlah DP yang valid.', 'warning');
+                            const dpInput = document.getElementById('jumlah_dp');
+                            // Ambil hanya angka
+                            const dpValue = dpInput ? parseInt(dpInput.value.replace(/\D/g, '')) : 0;
+                            if (!dpValue || dpValue <= 0) {
+                                Swal.fire('Peringatan', 'Silakan masukkan nominal DP yang valid.', 'warning');
                                 return;
                             }
                         }
                     }
 
-                    const fd = new FormData(uploadForm);
-                    
-                    Swal.fire({
-                        title: 'Memproses Check-in...',
-                        text: 'Mohon tunggu, data sedang disimpan.',
-                        allowOutsideClick: false,
-                        didOpen: () => { Swal.showLoading(); }
-                    });
-
-                    fetch('proses_checkin.php', { method: 'POST', body: fd })
-                        .then(response => response.json())
-                        .then(res => {
-                            Swal.close();
-                            if (res.ok) {
-                                bootstrapModal.hide();
-                                Swal.fire({
-                                    title: 'Berhasil!',
-                                    text: 'Tamu berhasil check-in.',
-                                    icon: 'success'
-                                }).then(() => location.reload());
-                            } else {
-                                Swal.fire('Check-in Gagal', res.message || 'Terjadi kesalahan yang tidak diketahui.', 'error');
-                            }
-                        })
-                        .catch((err) => {
-                            Swal.fire('Error', 'Gagal terhubung ke server. Silakan coba lagi.', 'error');
+                    // 3. Proses Upload & Checkin
+                    try {
+                        Swal.fire({ title: 'Memproses...', allowOutsideClick: false, didOpen: () => Swal.showLoading() });
+                        
+                        const response = await fetch('proses_checkin.php', { 
+                            method: 'POST', 
+                            body: new FormData(uploadForm) 
                         });
+                        const res = await response.json();
+
+                        if (res.ok) {
+                            bootstrapModal.hide();
+                            await Swal.fire('Berhasil!', 'Tamu berhasil check-in.', 'success');
+                            location.reload();
+                        } else {
+                            Swal.fire('Gagal', res.message || 'Terjadi kesalahan.', 'error');
+                        }
+                    } catch (err) {
+                        Swal.fire('Error', 'Gagal terhubung ke server.', 'error');
+                    }
                 };
             }
-.
-        function doUpdateStatus(action) {
-            const actionText = {
-                cancel: 'membatalkan',
-                checkout: 'check-out'
-            };
-
-            if (action === 'checkin') return;
-
-            Swal.fire({
-                title: 'Anda Yakin?',
-                text: `Anda akan ${actionText[action] || action} reservasi ini.`,
-                icon: 'warning',
-                showCancelButton: true,
-                confirmButtonColor: '#3085d6',
-                cancelButtonColor: '#d33',
-                confirmButtonText: `Ya, ${actionText[action]}!`,
-                cancelButtonText: 'Batal'
-            }).then((result) => {
-                if (result.isConfirmed) {
-                    Swal.fire({
-                        title: 'Memproses...',
-                        text: 'Mohon tunggu sebentar.',
-                        allowOutsideClick: false,
-                        didOpen: () => { Swal.showLoading(); }
-                    });
-
-                    const formData = new FormData();
-                    formData.append('id', <?php echo $id_reservasi; ?>);
-                    formData.append('action', action);
-
-                    fetch('update_reservasi.php', { method: 'POST', body: formData })
-                        .then(response => response.json())
-                        .then(res => {
-                            if (res.ok) {
-                                Swal.fire('Berhasil!', `Reservasi telah berhasil di-${action}.`, 'success')
-                                     .then(() => location.reload());
-                            } else {
-                                Swal.fire('Gagal', res.message || 'Gagal memperbarui status.', 'error');
-                            }
-                        })
-                        .catch(err => {
-                            Swal.fire('Error', 'Terjadi kesalahan saat menghubungi server.', 'error');
-                        });
-                }
-            });
-        }
+        });
     </script>
 </body>
 </html>
